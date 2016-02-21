@@ -51,7 +51,7 @@ static int locelt_2d(pMesh mesh,int nsd,double *c,double *cb) {
 
   nsf  = nsd;
   nsp  = 0;
-  mesh->mark = ++mesh->mark;
+  ++mesh->mark;
   while ( nsf > 0 ) {
     pt = &mesh->tria[nsf];
     if ( pt->mark == mesh->mark )  return(nsp);
@@ -138,7 +138,7 @@ static int travel_2d(ADst *adst,double *cb,int *iel,double *dt) {
   pTria       pt;
   pPoint      p[3];
   double     *u0,*u1,*u2,m[3],ddt,tol,ux,uy,c[2],cb1[3];
-  int         k,*adj;
+  int         k;
   char        i,i0,i1,i2;
 
   tol = *dt;
@@ -200,7 +200,7 @@ static int travel_2d(ADst *adst,double *cb,int *iel,double *dt) {
     c[1] = cb[0]*p[0]->c[1] + cb[1]*p[1]->c[1] + cb[2]*p[2]->c[1] - AD_EPS*uy;
     /* find the new triangle */
     k = locelt_2d(&adst->mesh,k,c,cb); 
-    if ( !k )  return(0);
+    if ( k < 1 )  return(0);
     *iel = k;
     *dt -= AD_EPS;
   }
@@ -315,7 +315,7 @@ int advec1_2d(ADst *adst) {
   }
 
   dt    = adst->sol.dt;
-  tol   = adst->sol.dt / 2;
+  tol   = adst->sol.dt / 10;
   nstep = (int)(dt/tol);
   step  = dt / nstep;
 
