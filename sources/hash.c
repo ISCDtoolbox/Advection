@@ -1,11 +1,6 @@
 #include "advect.h"
 
 
-#define KA     31
-#define KB     57
-#define KC     79
-
-
 /* data structures */
 typedef struct {
   int    min,max,nxt,elt,ind;
