@@ -69,31 +69,31 @@ A full description of all parameters and options that can be specified in the co
 You can test the installation and look at examples by entering the [demos](demos) directory and running the program:
 
     cd demos/2d
-    advection test.mesh
+    advection test.mesh -dt 0.001 -s test.sol -c test.chi.sol -o test.chi.sol
 
 that will produce an output that will look like:
 ```
-user:~/code/Advection/demos/2d$ advect test.mesh
- - ADVECT, Release 5.2a, Jan. 29, 2016
-   (C) Copyright 2006- , ICS-SU
+user:~/code/Advection/demos/2d$ advect test.mesh -dt 0.001 -s test.sol -c test.chi.sol -o test.chi.sol
+ - ADVECT, Release 3.0a, Feb. 19, 2016
+   (C) Copyright 2007- , ICS-SU
 
  - LOADING DATA
-    cavity.mesh: 555 vertices, 74 edges, 1034 triangles
-    cavity.nstokes: 2 parameters
- - COMPLETED: 0.002s
+    test.mesh: 647 vertices, 1213 triangles
+    test.sol : 647 data vectors
+    test.chi.sol : 647 data scalar
+    Adjacency table:  3639 updated
+ - COMPLETED: 0.003s
 
- ** MODULE NSTOKES: 5.2a
-    Matrix and right-hand side assembly
-    Solving linear system:
-     pressure: res=6.862905e-07, nit=36
-     velocity: res=7.920541e-07, nit=26
- ** COMPLETED: 0.120s
+ ** MODULE ADVECT: 3.0a
+    Time stepping: 0.005
+    Solving: 0 characteristics
+ ** COMPLETED: 0.000s
 
  - WRITING DATA
-    cavity.solb: 555 data vectors
- - COMPLETED: 0.008s
+    test.chi.sol: 647 data vectors
+ - COMPLETED: 0.001s
 
- ** Cumulative time: 0.130s.
+ ** Cumulative time: 0.004s.
 ```
 
 #### Authors & contributors
