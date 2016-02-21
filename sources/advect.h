@@ -55,21 +55,11 @@ typedef struct {
 } Info;
 
 typedef struct {
-  int    min,nxt,elt,ind;
-} Cell;
-
-typedef struct {
-  Cell  *cell;
-  int    nmax,hsiz,hnxt;
-} Htab;
-
-typedef struct {
   int       mark;
   char     *name;
   Point    *point;
   Tria     *tria;
   Tetra    *tetra;
-  Htab      hash;
 } Mesh;
 typedef Mesh * pMesh;
 
