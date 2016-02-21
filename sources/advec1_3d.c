@@ -13,7 +13,6 @@ static double det_3d(double *cp0,double *cp1,double *cp2,double *cp3) {
 }
 
 /* barycentric coordinates of point c[] in iel=p0,p1,p2,p3 */
-//static inline int bar_3d(pPoint pp[4],double *c,int iel,double *cb) {
 static inline int bar_3d(pPoint pp[4],double *c,int iel,double *cb) { 
   double    det,cp0[3],cp1[3],cp2[3],cp3[3];
   char      i;
