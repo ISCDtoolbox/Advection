@@ -10,6 +10,7 @@ int loadMesh(ADst *adst) {
   float      fp1,fp2,fp3;
   int        i,i1,k,inm;
   char      *ptr,data[128];
+  static int edg[6][2] = {0,1, 0,2, 0,3, 1,2, 1,3, 2,3};
 
   strcpy(data,adst->mesh.name);
   ptr = strstr(data,".mesh");
@@ -88,7 +89,7 @@ int loadMesh(ADst *adst) {
   for (k=1; k<=adst->info.nt; k++) {
     pt1 = &adst->mesh.tria[k];
     GmfGetLin(inm,GmfTriangles,&pt1->v[0],&pt1->v[1],&pt1->v[2],&pt1->ref);
-    if ( adst->sol.dt < 0.0 ) {
+    if ( (adst->info.dim == 2) && (adst->sol.dt < 0.0) ) {
       for (i=0; i<3; i++) {
         i1 = (i+1) % 3;
         a  = &adst->mesh.point[pt1->v[i]].c[0];
@@ -104,6 +105,14 @@ int loadMesh(ADst *adst) {
     pt = &adst->mesh.tetra[k];
 		pt->mark =0;
     GmfGetLin(inm,GmfTetrahedra,&pt->v[0],&pt->v[1],&pt->v[2],&pt->v[3],&pt->ref);
+    if ( adst->sol.dt < 0.0 ) {
+      for (i=0; i<6; i++) {
+        a  = &adst->mesh.point[pt1->v[edg[i][0]]].c[0];
+        b  = &adst->mesh.point[pt1->v[edg[i][1]]].c[0];
+        dd = sqrt((b[0]-a[0])*(b[0]-a[0]) + (b[1]-a[1])*(b[1]-a[1]) + (b[2]-a[2])*(b[2]-a[2]));
+        adst->sol.hmin = AD_MIN(adst->sol.hmin,dd);
+      }
+    }
   }
   GmfCloseMesh(inm);
 

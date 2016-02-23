@@ -21,6 +21,7 @@ static int hcode_3d(Tetra *tetra,Htab *ht,int a,int b,int c,int k,int i) {
   if ( sum >= ht->nmax )  return(0);
 
   /* check if edge ab stored */
+  sum = sum % ht->hsiz;
   pc  = &ht->cell[sum];
   min = AD_MIN3(a,b,c);
   max = AD_MAX3(a,b,c);
@@ -39,8 +40,8 @@ static int hcode_3d(Tetra *tetra,Htab *ht,int a,int b,int c,int k,int i) {
     if ( pc->min == min && pc->max == max ) {
       adj = pt1->adj[pc->ind];
       if ( !adj ) {
-        pt->adj[i]        = 3*pc->elt+pc->ind;
-        pt1->adj[pc->ind] = 3*k+i;
+        pt->adj[i]        = 4*pc->elt+pc->ind;
+        pt1->adj[pc->ind] = 4*k+i;
       }
       return(1);
     }
@@ -120,7 +121,7 @@ static int hcode_2d(Tria *tria,Htab *ht,int a,int b,int k,int i) {
 /* build adjacency table */
 int hashel_3d(ADst *adst) {
   Htab     ht;
-  pTetra   pt;
+  pTetra   pt,pt1;
   pPoint   ppt;
   int      k,nt;
   char     i,i1,i2,i3;
@@ -128,11 +129,11 @@ int hashel_3d(ADst *adst) {
   if ( adst->info.verb != '0' )  fprintf(stdout,"    Adjacency table: ");
 
   /* alloc hash */
-  ht.nmax = (int)(8.71 * adst->info.np);
+  ht.nmax = (int)(12.71 * adst->info.np);
   ht.cell = (Cell*)calloc(ht.nmax+2,sizeof(Cell));
   assert(ht.cell);
 
-  ht.hsiz = 3 * adst->info.np;
+  ht.hsiz = adst->info.np;
   ht.hnxt = ht.hsiz;
   for (k=ht.hsiz; k<ht.nmax; k++)
     ht.cell[k].nxt = k+1;

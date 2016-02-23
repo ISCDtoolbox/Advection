@@ -240,7 +240,8 @@ int main(int argc,char *argv[]) {
   }
 
   /* build adjacency table */
-  adst.info.dim == 2 ? hashel_2d(&adst) : hashel_3d(&adst);
+  ier = adst.info.dim == 2 ? hashel_2d(&adst) : hashel_3d(&adst);
+  if ( !ier )  return(1);
 
   chrono(OFF,&adst.info.ctim[1]);
   printim(adst.info.ctim[1].gdif,stim);
