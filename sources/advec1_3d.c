@@ -370,6 +370,15 @@ static int nxtptE_3d(ADst *adst,int *iel,double *c,double *cb,double step,double
 }
 
 
+static void savedt(double dt) {
+  FILE   *out;
+  
+  out = fopen(".dt","w");
+  fprintf(out,"%g\n",dt);
+  fclose(out);
+}
+
+
 /* solve advection, solution in rv */
 int advec1_3d(ADst *adst) {
   pTetra   pt,pt1;
@@ -385,10 +394,17 @@ int advec1_3d(ADst *adst) {
   }
 
   /* check mesh size and velocity */
+  dt = adst->sol.hmin / adst->sol.umax;
   if ( adst->sol.dt < 0.0 ) {
-    adst->sol.dt = adst->sol.hmin / adst->sol.umax;
+    adst->sol.dt = dt;
+    savedt(dt);
   }
-
+  else if ( dt < adst->sol.dt ) {
+    adst->sol.dt = dt;
+    savedt(dt);
+  }
+  
+  /* adjust iterations */
   dt    = adst->sol.dt;
   tol   = adst->sol.dt / 10;
   nstep = (int)(dt/tol);

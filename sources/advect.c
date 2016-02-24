@@ -176,6 +176,25 @@ static int parsar(int argc,char *argv[],ADst *adst) {
 }
 
 
+/* parsing boundary conditions */
+static int parsdt(ADst *adst) {
+  double   dt;
+  FILE    *in;
+
+  /* check for parameter file */
+  in = fopen(".dt","r");
+  if ( !in )  return(1);
+  fscanf(in,"%lf",&dt);
+  fclose(in);
+ 
+  /* check value */
+  if ( adst->sol.dt > 0.0 )
+    adst->sol.dt = AD_MIN(adst->sol.dt,dt);
+
+  return(1);
+}
+
+
 int main(int argc,char *argv[]) {
   ADst    adst;
   int     ier;
@@ -205,6 +224,7 @@ int main(int argc,char *argv[]) {
 
   /* parse command line */
   if ( !parsar(argc,argv,&adst) )  return(1);
+  if ( !parsdt(&adst) )  return(1);
 
   /* loading data */
 	chrono(ON,&adst.info.ctim[1]);
