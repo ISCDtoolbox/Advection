@@ -295,6 +295,15 @@ static int nxtptE_2d(ADst *adst,int *iel,double *c,double *cb,double step,double
 }
 
 
+static void savedt(double dt) {
+  FILE   *out;
+  
+  out = fopen(".dt","w");
+  fprintf(out,"%g\n",dt);
+  fclose(out);
+}
+
+
 /* solve advection, solution in rv */
 int advec1_2d(ADst *adst) {
   pTria    pt,pt1;
@@ -310,8 +319,15 @@ int advec1_2d(ADst *adst) {
   }
 
   /* check mesh size and velocity */
+  /* check mesh size and velocity */
+  dt = adst->sol.hmin / adst->sol.umax;
   if ( adst->sol.dt < 0.0 ) {
-    adst->sol.dt = adst->sol.hmin / adst->sol.umax;
+    adst->sol.dt = dt;
+    savedt(dt);
+  }
+  else if ( dt < adst->sol.dt ) {
+    adst->sol.dt = dt;
+    savedt(dt);
   }
 
   dt    = adst->sol.dt;
