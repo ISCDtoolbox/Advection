@@ -399,7 +399,7 @@ int advec1_3d(ADst *adst) {
     adst->sol.dt = dt;
     savedt(dt);
   }
-  else if ( dt < adst->sol.dt ) {
+  else if ( dt < adst->sol.dt/10.0 ) {
     adst->sol.dt = dt;
     savedt(dt);
   }

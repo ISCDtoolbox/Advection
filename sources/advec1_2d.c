@@ -319,13 +319,13 @@ int advec1_2d(ADst *adst) {
   }
 
   /* check mesh size and velocity */
-  /* check mesh size and velocity */
+  if ( adst->sol.umax < AD_EPSD )  return(0);
   dt = adst->sol.hmin / adst->sol.umax;
   if ( adst->sol.dt < 0.0 ) {
     adst->sol.dt = dt;
     savedt(dt);
   }
-  else if ( dt < adst->sol.dt ) {
+  else if ( dt < adst->sol.dt/10.0 ) {
     adst->sol.dt = dt;
     savedt(dt);
   }
