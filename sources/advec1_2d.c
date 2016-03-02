@@ -326,7 +326,7 @@ int advec1_2d(ADst *adst) {
     savedt(dt);
   }
   else if ( dt < adst->sol.dt/10.0 ) {
-    adst->sol.dt = dt;
+    adst->sol.dt = AD_MAX(dt,adst->sol.dt/100.0);
     savedt(dt);
   }
 
