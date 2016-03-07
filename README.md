@@ -1,4 +1,4 @@
-# advect
+# advect [![Build Status](https://travis-ci.org/ICStoolbox/Advection.svg?branch=master)](https://travis-ci.org/ICStoolbox/Advection)
 Advect is a program for solving linear advection problems in two and three dimensions.
 
 #### Installation
