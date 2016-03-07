@@ -26,7 +26,8 @@
 #define AD_EPS   1.e-6
 #define AD_EPS2  1.e-12
 #define AD_EPSD  1.e-200
-#define AD_TGV   1.e30
+#define AD_TGV   1.e+30
+#define AD_DTM   1.e-4
 
 
 /* data structures */

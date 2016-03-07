@@ -186,7 +186,7 @@ static int parsdt(ADst *adst) {
   if ( !in )  return(1);
   fscanf(in,"%lf",&dt);
   fclose(in);
- 
+
   /* check value */
   if ( adst->sol.dt > 0.0 )
     adst->sol.dt = AD_MIN(adst->sol.dt,dt);
@@ -218,9 +218,9 @@ int main(int argc,char *argv[]) {
   adst.sol.dt = -1.0;
 
   /* global parameters */
-	adst.info.dim    = 3;
-	adst.info.ver    = 1;	
-  adst.info.verb   = '1';
+	adst.info.dim  = 3;
+	adst.info.ver  = 1;	
+  adst.info.verb = '1';
 
   /* parse command line */
   if ( !parsar(argc,argv,&adst) )  return(1);
