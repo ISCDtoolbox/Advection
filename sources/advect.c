@@ -224,7 +224,7 @@ int main(int argc,char *argv[]) {
 
   /* parse command line */
   if ( !parsar(argc,argv,&adst) )  return(1);
-  if ( !parsdt(&adst) )  return(1);
+  if ( adst.sol.dt < 0.0 && !parsdt(&adst) )  return(1);
 
   /* loading data */
 	chrono(ON,&adst.info.ctim[1]);
