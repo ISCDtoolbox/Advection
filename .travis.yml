@@ -20,7 +20,5 @@ script:
   - make
   - make install
   - cd -
-  - cd demos/2d
-  - advection test.mesh -dt 0.001 -s test.sol -c test.chi.sol -o test.chi.sol
 notifications:
   email: false
