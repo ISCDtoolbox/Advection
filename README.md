@@ -3,23 +3,7 @@ Advect is a program for solving linear advection problems in two and three dimen
 
 #### Installation
 
-##### Automatic installation
-
-1. download the zip archive of Advection or clone this repository:
-
-   ` git clone https://github.com/ICStoolbox/Advection.git `
-
-   navigate to the downloaded directory: 
-
-   ` cd Advection `
-
-2. execute the installation script, which will install the [ICS Commons Library](https://github.com/ICStoolbox/Commons) on your system, along with the Advection library and executable, located in ~/lib/ and ~/bin/:
-
-   ` sh install.sh `
-
-##### Manual installation
-
-1. you will need to install the [ICS Commons Library](https://github.com/ICStoolbox/Commons) on your system. 
+1. Install the [ICS Commons Library](https://github.com/ICStoolbox/Commons) on your system. 
 Please refer to the instructions provided on the ICS Commons Library page in order to install this library.
 
 2. download the zip archive of Advection or clone this repository:
@@ -30,20 +14,17 @@ Please refer to the instructions provided on the ICS Commons Library page in ord
 
    ` cd Advection `
 
-   then create build directory and create Makefile
+   create a build directory and compile with cmake
    ```
    mkdir build
    cd build
    cmake ..
    make
+   make install
    ```
 
-   if no errors are produced, install the binary and library
-
-   ` make install ` 
-
 #### Usage
-After compiling nstokes as described above, you should have an executable file in your $HOME/bin directory. If your PATH variable is correctly set to this directory, advect can be called with the following syntax:
+After compiling advect as described above, you should have an executable file in your $HOME/bin directory. If your PATH variable is correctly set to this directory, advect can be called with the following syntax:
 
     usage: advect [+/-v | -h] [-dt step] source[.mesh] [-s data[.sol]] [-o output[.sol]]
     
@@ -63,9 +44,9 @@ The options and flags are:
   output.sol     name of the output file
 ```
 
-A full description of all parameters and options that can be specified in the command line or in a parameter file [file.nstokes] can be found in the project [wiki](https://github.com/ICStoolbox/NavierStokes/wiki).
+A full description of all parameters and options that can be specified in the command line or in a parameter file [file.advect] can be found in the project [wiki](https://github.com/ICStoolbox/Advection/wiki) (Coming soon...).
 
-#### Quickstart
+#### Quickstart (Coming soon...)
 You can test the installation and look at examples by entering the [demos](demos) directory and running the program:
 
     cd demos/2d
