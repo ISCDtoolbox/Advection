@@ -26,7 +26,7 @@ Please refer to the instructions provided on the ICS Commons Library page in ord
 #### Usage
 After compiling advect as described above, you should have an executable file in your $HOME/bin directory. If your PATH variable is correctly set to this directory, advect can be called with the following syntax:
 
-    usage: advect [+/-v | -h] [-dt step] source[.mesh] [-s data[.sol]] [-o output[.sol]]
+    usage: advect [+/-v | -h] [-dt step] source[.mesh] [-c function[.sol]] [-s data[.sol]] [-o output[.sol]]
     
 The square braces indicate optional arguments. Some commands have flags, some others do not.
 
@@ -40,8 +40,9 @@ The options and flags are:
   +v           increase the verbosity level for output.
 
   source.mesh    name of the mesh file
-  data.sol       name of file containing the initial solution or boundary conditions
-  output.sol     name of the output file
+  function.sol   name of file containing the (scalar) values to be advected
+  data.sol       name of file containing the velocity field
+  output.sol     name of the output file containing the function values
 ```
 
 A full description of all parameters and options that can be specified in the command line or in a parameter file [file.advect] can be found in the project [wiki](https://github.com/ICStoolbox/Advection/wiki) (Coming soon...).
@@ -54,7 +55,7 @@ You can test the installation and look at examples by entering the [demos](demos
 
 that will produce an output that will look like:
 ```
-user:~/code/Advection/demos/2d$ advect test.mesh -dt 0.001 -s test.sol -c test.chi.sol -o test.chi.sol
+user:~/code/Advection/demos/2d$ advect test.mesh -dt 0.01 -s test.sol -c test.chi.sol -o test.chi.sol
  - ADVECT, Release 3.0a, Feb. 19, 2016
    (C) Copyright 2007- , ICS-SU
 
