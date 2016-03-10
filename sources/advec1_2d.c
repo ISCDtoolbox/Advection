@@ -329,6 +329,10 @@ int advec1_2d(ADst *adst) {
     adst->sol.dt = AD_MAX(AD_DTM,AD_MAX(dt,adst->sol.dt/10.0));
     savedt(adst->sol.dt);
   }
+  else if ( dt < adst->sol.dt ) {
+    adst->sol.dt = dt;
+  savedt(adst->sol.dt);
+  }
 
   dt    = adst->sol.dt;
   tol   = adst->sol.dt / 10;
