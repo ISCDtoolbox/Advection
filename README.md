@@ -3,7 +3,7 @@ Advect is a program for solving linear advection problems in two and three dimen
 
 #### Installation
 
-1. Install the [ICS Commons Library](https://github.com/ICStoolbox/Commons) on your system. 
+1. install the [ICS Commons Library](https://github.com/ICStoolbox/Commons) on your system. 
 Please refer to the instructions provided on the ICS Commons Library page in order to install this library.
 
 2. download the zip archive of Advection or clone this repository:
