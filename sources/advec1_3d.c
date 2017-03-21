@@ -394,19 +394,21 @@ int advec1_3d(ADst *adst) {
   }
 
   /* check mesh size and velocity */
-  dt = adst->sol.hmin / adst->sol.umax;
-  if ( adst->sol.dt < 0.0 ) {
-    adst->sol.dt = dt;
-    savedt(dt);
-  }
-  else if ( dt < adst->sol.dt/10.0 ) {
-    adst->sol.dt = dt;
-    savedt(dt);
+  if ( !adst->info.nocfl ) {
+    dt = adst->sol.hmin / adst->sol.umax;
+    if ( adst->sol.dt < 0.0 ) {
+      adst->sol.dt = dt;
+      savedt(dt);
+    }
+    else if ( dt < adst->sol.dt/10.0 ) {
+      adst->sol.dt = dt;
+      savedt(dt);
+    }
   }
   
   /* adjust iterations */
   dt    = adst->sol.dt;
-  tol   = adst->sol.dt / 10;
+  tol   = adst->sol.dt / 10.0;
   nstep = (int)(dt/tol);
   step  = dt / nstep;
 

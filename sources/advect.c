@@ -113,6 +113,10 @@ static int parsar(int argc,char *argv[],ADst *adst) {
           usage(argv[0]);
         }
         break;
+      case 'n':
+        if ( !strcmp(argv[i],"-nocfl") )
+          adst->info.nocfl = 1;
+        break;
       case 'o':
         if ( ++i < argc ) {
           adst->sol.nameout = argv[i];
@@ -218,10 +222,11 @@ int main(int argc,char *argv[]) {
   adst.sol.dt = -1.0;
 
   /* global parameters */
-	adst.info.dim  = 3;
-	adst.info.ver  = 1;	
+  adst.info.dim  = 3;
+  adst.info.ver  = 1;
   adst.info.verb = '1';
-
+  adst.info.nocfl = 0;
+  
   /* parse command line */
   if ( !parsar(argc,argv,&adst) )  return(1);
   if ( adst.sol.dt < 0.0 && !parsdt(&adst) )  return(1);
