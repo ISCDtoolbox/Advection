@@ -41,7 +41,7 @@ static inline double vecint_2d(double *un,int *iv,double *cb,double *v) {
 }
 
 
-/* find element containing c, starting from nsdep, return baryc. coord */
+/* find element containing c, starting from nsd, return baryc. coord */
 static int locelt_2d(pMesh mesh,int nsd,double *c,double *cb) {
   pTria     pt;
   pPoint    p0,p1,p2;
@@ -317,25 +317,28 @@ int advec1_2d(ADst *adst) {
     assert(adst->sol.new);
     memcpy(adst->sol.new,adst->sol.chi,(adst->info.np+1)*sizeof(double));
   }
-
-  /* check mesh size and velocity */
-  if ( adst->sol.umax < AD_EPSD )  return(1);
-  dt = adst->sol.hmin / adst->sol.umax;
-  if ( adst->sol.dt < 0.0 ) {
-    adst->sol.dt = dt;
-    savedt(dt);
-  }
-  else if ( dt < adst->sol.dt/10.0 ) {
-    adst->sol.dt = AD_MAX(AD_DTM,AD_MAX(dt,adst->sol.dt/10.0));
-    savedt(adst->sol.dt);
-  }
-  else if ( dt < adst->sol.dt ) {
-    adst->sol.dt = dt;
-  savedt(adst->sol.dt);
+  
+  /* check mesh size and velocity if not in mode nocfl */
+  if ( !adst->info.nocfl ) {
+    if ( adst->sol.umax < AD_EPSD )  return(1);
+    dt = adst->sol.hmin / adst->sol.umax;
+  
+    if ( adst->sol.dt < 0.0 ) {
+      adst->sol.dt = dt;
+      savedt(dt);
+    }
+    else if ( dt < adst->sol.dt/10.0 ) {
+      adst->sol.dt = AD_MAX(AD_DTM,AD_MAX(dt,adst->sol.dt/10.0));
+      savedt(adst->sol.dt);
+    }
+    else if ( dt < adst->sol.dt ) {
+      adst->sol.dt = dt;
+      savedt(adst->sol.dt);
+    }
   }
 
   dt    = adst->sol.dt;
-  tol   = adst->sol.dt / 10;
+  tol   = adst->sol.dt / 100.0;
   nstep = (int)(dt/tol);
   step  = dt / nstep;
 
@@ -343,7 +346,7 @@ int advec1_2d(ADst *adst) {
     fprintf(stdout,"    Time stepping: %g\n",dt);
     fprintf(stdout,"    Solving: "); fflush(stdout);
   }
-
+  
   ++adst->mesh.mark;
   nt = 0;
   for (k=1; k<=adst->info.nt; k++) {
