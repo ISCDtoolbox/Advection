@@ -46,6 +46,7 @@ static void usage(char *prog) {
   --help       show the syntax and exit.\n\
   --version    show the version and date of release and exit.\n\n\
   -dt step     time step (time units)\n\
+  -nocfl       avoid truncation of the advection time period. \n\
   -v           suppress any message (for use with function call).\n\
   +v           increase the verbosity level for output.\n\n\
   source.mesh    name of the mesh file\n\
