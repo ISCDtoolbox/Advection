@@ -55,7 +55,7 @@ static double vecint_3d(double *un,int *iv,double *cb,double *v) {
 }
 
 
-/* find element containing c, starting from nsdep, return baryc. coord */
+/* find element containing c, starting from nsd, return baryc. coord in cb */
 static int locelt_3d(pMesh mesh,int nsd,double *c,double *cb) {
   pTetra   pt;
   pPoint   p0,p1,p2,p3;
@@ -93,7 +93,7 @@ static int locelt_3d(pMesh mesh,int nsd,double *c,double *cb) {
     vy  = cz*dx - cx*dz;
     vz  = cx*dy - cy*dx;
     vto = bx*vx + by*vy + bz*vz;
-		eps = AD_EPS*vto;
+    eps = AD_EPS*vto;
 
     /* barycentric */
     apx = c[0] - p0->c[0];
@@ -118,7 +118,7 @@ static int locelt_3d(pMesh mesh,int nsd,double *c,double *cb) {
     vz  = bx*apy - by*apx;
     vol3 = dx*vx + dy*vy + dz*vz;
     if ( vol3 < eps ) {
-			nsp = nsf;
+      nsp = nsf;
       nsf = pt->adj[2] / 4;
       if ( !nsf ) {
         cb[2] = 0.0;
@@ -127,10 +127,11 @@ static int locelt_3d(pMesh mesh,int nsd,double *c,double *cb) {
       else
         continue;
     }
+    
     /* p in 4 */
     vol4 = -cx*vx - cy*vy - cz*vz;
     if ( vol4 < eps ) {
-			nsp = nsf;
+      nsp = nsf;
       nsf = pt->adj[3] / 4;
       if ( !nsf ) {
         cb[3] = 0.0;
@@ -139,10 +140,11 @@ static int locelt_3d(pMesh mesh,int nsd,double *c,double *cb) {
       else
         continue;
     }
+    
     /* p in 1 */
     vol1 = vto - vol2 - vol3 - vol4;
     if ( vol1 < eps ) {
-			nsp = nsf;
+      nsp = nsf;
       nsf = pt->adj[0] / 4;
       if ( !nsf ) {
         cb[0] = 0.0;
@@ -151,14 +153,21 @@ static int locelt_3d(pMesh mesh,int nsd,double *c,double *cb) {
       else
         continue;
     }
+    
+    vol1 = AD_MAX(vol1,0.0);
+    vol2 = AD_MAX(vol2,0.0);
+    vol3 = AD_MAX(vol3,0.0);
+    vol4 = AD_MAX(vol4,0.0);
+    
     dd = fabs(vol1+vol2+vol3+vol4);
     if ( dd > AD_EPSD ) {
-	    dd = 1.0 / dd;
-      cb[0] = fabs(vol1) * dd;
-      cb[1] = fabs(vol2) * dd;
-      cb[2] = fabs(vol3) * dd;
-      cb[3] = fabs(vol4) * dd;
+      dd = 1.0 / dd;
+      cb[0] = vol1 * dd;
+      cb[1] = vol2 * dd;
+      cb[2] = vol3 * dd;
+      cb[3] = vol4 * dd;
     }
+    
     return(nsf);
   }
 
@@ -259,27 +268,27 @@ static int travel_3d(ADst *adst,double *cb,int *iel,double *dt) {
     cb1[i2] = cb[i2] - ddt * m[i2];
     cb1[i3] = 1.0 - cb1[i1] - cb1[i2];
     if ( cb1[i1] < AD_EPS2 ) {
-	    cb1[i2] -= (AD_EPS2-cb1[i1]) / 2;
+      cb1[i2] -= (AD_EPS2-cb1[i1]) / 2;
       cb1[i3] -= (AD_EPS2-cb1[i1]) / 2;
       cb1[i1]  =  AD_EPS2;
     }
     else if ( cb1[i1] > 1.0-AD_EPS2 ) {
-	    cb1[i2] += (cb1[i1]-1.0+AD_EPS2) / 2;
+      cb1[i2] += (cb1[i1]-1.0+AD_EPS2) / 2;
       cb1[i3] += (cb1[i1]-1.0+AD_EPS2) / 2;
       cb1[i1]  = 1.0-AD_EPS2;
     }
     if ( cb1[i2] < AD_EPS2 ) {
-	    cb1[i3] -= (AD_EPS2-cb1[i2]) / 2;
+      cb1[i3] -= (AD_EPS2-cb1[i2]) / 2;
       cb1[i1] -= (AD_EPS2-cb1[i2]) / 2;
       cb1[i2]  = AD_EPS2;
     }
     else if ( cb1[i2] > 1.0-AD_EPS2 ) {
-	    cb1[i3] += (cb1[i2]-1.0+AD_EPS2) / 2;
+      cb1[i3] += (cb1[i2]-1.0+AD_EPS2) / 2;
       cb1[i1] += (cb1[i2]-1.0+AD_EPS2) / 2;
       cb1[i2]  = 1.0-AD_EPS2;
     }
     *dt -= ddt;
-
+    
     /* coordinates of the point of barycentric coordinates cb1 */
     c[0] = cb1[0]*p[0]->c[0] + cb1[1]*p[1]->c[0] + cb1[2]*p[2]->c[0] + cb1[3]*p[3]->c[0];
     c[1] = cb1[0]*p[0]->c[1] + cb1[1]*p[1]->c[1] + cb1[2]*p[2]->c[1] + cb1[3]*p[3]->c[1];
@@ -343,7 +352,7 @@ static int nxtptR_3d(ADst *adst,int *iel,double *c,double *cb,double step,double
   vecint_3d(adst->sol.u,adst->mesh.tetra[k].v,cb,v);
 
   *iel = k;
-	return(1);
+  return(1);
 }
 
 
@@ -416,7 +425,7 @@ int advec1_3d(ADst *adst) {
     fprintf(stdout,"    Time stepping: %g\n",dt);
     fprintf(stdout,"    Solving: "); fflush(stdout);
   }
-
+  
   ++adst->mesh.mark;
   nt = 0;
   for (k=1; k<=adst->info.ne; k++) {
@@ -435,10 +444,10 @@ int advec1_3d(ADst *adst) {
       v[2] = adst->sol.u[3*(ip-1)+3];
       norm = sqrt(v[0]*v[0] + v[1]*v[1] + v[2]*v[2]);
       if ( norm < AD_EPSD )  continue;
-
+      
       /* barycentric coordinates of point p in triangle k */
       memset(cb,0,4*sizeof(double));
-			cb[i] = 1.0;
+      cb[i] = 1.0;
 
       /* next point = foot of the characteristic line */
       c[0] = ppt->c[0];
@@ -452,13 +461,15 @@ int advec1_3d(ADst *adst) {
       }
       if ( j < nstep ) {
         iel = kprv;
+        printf("coucou \n");
         while ( travel_3d(adst,cb,&iel,&dte) );
       }
+      
       /* check if characteristic remains inside domain */
       if ( dte > AD_EPS ) {
         if ( iel < 0 )  iel = kprv;
         iel = locelt_3d(&adst->mesh,iel,c,cb);
-				if ( iel < 1 )  iel = kprv;
+        if ( iel < 1 )  iel = kprv;
       }
       /* interpolate value at foot  */
       if ( iel == 0 )  return(0);
@@ -467,6 +478,7 @@ int advec1_3d(ADst *adst) {
                         + cb[1]*adst->sol.chi[pt1->v[1]] \
                         + cb[2]*adst->sol.chi[pt1->v[2]] \
                         + cb[3]*adst->sol.chi[pt1->v[3]];
+
       nt++;
     }
   }

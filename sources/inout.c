@@ -107,8 +107,8 @@ int loadMesh(ADst *adst) {
 		pt->mark =0;
     GmfGetLin(inm,GmfTetrahedra,&pt->v[0],&pt->v[1],&pt->v[2],&pt->v[3],&pt->ref);
     for (i=0; i<6; i++) {
-      a  = &adst->mesh.point[pt1->v[edg[i][0]]].c[0];
-      b  = &adst->mesh.point[pt1->v[edg[i][1]]].c[0];
+      a  = &adst->mesh.point[pt->v[edg[i][0]]].c[0];
+      b  = &adst->mesh.point[pt->v[edg[i][1]]].c[0];
       dd = sqrt((b[0]-a[0])*(b[0]-a[0]) + (b[1]-a[1])*(b[1]-a[1]) + (b[2]-a[2])*(b[2]-a[2]));
       adst->sol.hmin = AD_MIN(adst->sol.hmin,dd);
     }
