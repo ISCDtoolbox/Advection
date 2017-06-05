@@ -128,7 +128,6 @@ static int locelt_2d(pMesh mesh,int nsd,double *c,double *cb) {
   return(nsp);
 }
 
-
 /* computes the characteristic line emerging from point with barycentric coordinates cb
  in triangle iel and follows the characteristic on a length dt at most. Most often has to 
  cross the boundary of the current triangle, thus stores in it the new triangle, in cb
