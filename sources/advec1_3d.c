@@ -54,6 +54,49 @@ static double vecint_3d(double *un,int *iv,double *cb,double *v) {
   return(dd);
 }
 
+/* Calculate the ball of point p0 (i in tetra k), i.e. the set of tetras containing p0 */
+static int boulet_3d(pMesh mesh,int start,char i,int *list) {
+  pTetra     pt,pt1;
+  int        k,kk,ilist,cur,nump,base;
+  char       i0,i1,j,jj;
+  
+  cur = 0;
+  ilist = 0;
+  
+  pt = &mesh->tetra[start];
+  nump = pt->v[i];
+  
+  list[ilist] = 4*start+i;
+  ilist++;
+  
+  base = ++mesh->mark;
+  while ( cur < ilist ) {
+    k  = list[cur] / 4;
+    i0 = list[cur] % 4;
+    pt = &mesh->tetra[k];
+    
+    for (j=0; j<3; j++) {
+      i1 = (i0+1+j)%4;
+      kk = pt->adj[i1] / 4;
+      if ( !kk ) continue;
+      
+      pt1 = &mesh->tetra[kk];
+      if ( pt1->mark == base ) continue;
+      
+      for (jj=0; jj<4; jj++)
+        if ( pt1->v[jj] == nump ) break;
+      
+      list[ilist] = 4*kk+jj;
+      ilist++;
+      if ( ilist > AD_LONMAX-2) return(-ilist);
+      pt1->mark = base;
+    }
+    cur++;
+  }
+  
+  return(ilist);
+}
+
 
 /* find element containing c, starting from nsd, return baryc. coord in cb */
 static int locelt_3d(pMesh mesh,int nsd,double *c,double *cb) {
@@ -62,13 +105,14 @@ static int locelt_3d(pMesh mesh,int nsd,double *c,double *cb) {
   double   bx,by,bz,cx,cy,cz,dx,dy,dz,vx,vy,vz,apx,apy,apz;
   double   eps,vto,vol1,vol2,vol3,vol4,dd; 
   int      i,nsf,nsp;
+  char     isin;
 
   nsf = nsd;
   nsp = nsd;
   ++mesh->mark;
   while ( nsf > 0 ) {
     pt = &mesh->tetra[nsf];
-    if ( pt->mark == mesh->mark )  return(nsp);
+    if ( pt->mark == mesh->mark )  return(-nsp);
     pt->mark = mesh->mark;
     
     /* measure of element */
@@ -154,12 +198,14 @@ static int locelt_3d(pMesh mesh,int nsd,double *c,double *cb) {
         continue;
     }
     
+    isin = ( vol1 >= eps && vol2 >= eps && vol3 >= eps && vol4 >= eps );
+    
     vol1 = AD_MAX(vol1,0.0);
     vol2 = AD_MAX(vol2,0.0);
     vol3 = AD_MAX(vol3,0.0);
     vol4 = AD_MAX(vol4,0.0);
     
-    dd = fabs(vol1+vol2+vol3+vol4);
+    dd = vol1+vol2+vol3+vol4;
     if ( dd > AD_EPSD ) {
       dd = 1.0 / dd;
       cb[0] = vol1 * dd;
@@ -168,9 +214,12 @@ static int locelt_3d(pMesh mesh,int nsd,double *c,double *cb) {
       cb[3] = vol4 * dd;
     }
     
-    return(nsf);
+    if ( isin )
+      return(nsf);
+    else
+      return(-nsf);
   }
-
+  
   return(nsp);
 }
 
@@ -196,13 +245,13 @@ static int travel_3d(ADst *adst,double *cb,int *iel,double *dt) {
   p[2] = &adst->mesh.point[pt->v[2]];
   p[3] = &adst->mesh.point[pt->v[3]];
 
-  /* the speed at each vertex of iel */
+  /* velocity at each vertex of iel */
   u0 = &adst->sol.u[3*(pt->v[0]-1)+1];
   u1 = &adst->sol.u[3*(pt->v[1]-1)+1];
   u2 = &adst->sol.u[3*(pt->v[2]-1)+1];
   u3 = &adst->sol.u[3*(pt->v[3]-1)+1];
 
-  /* u = P1 velocity at the point of barycentric coordinates cb */
+  /* u = P1 velocity at the point with barycentric coordinates cb */
   ux = cb[0]*u0[0] + cb[1]*u1[0] + cb[2]*u2[0] + cb[3]*u3[0];
   uy = cb[0]*u0[1] + cb[1]*u1[1] + cb[2]*u2[1] + cb[3]*u3[1];
   uz = cb[0]*u0[2] + cb[1]*u1[2] + cb[2]*u2[2] + cb[3]*u3[2];  
@@ -210,10 +259,10 @@ static int travel_3d(ADst *adst,double *cb,int *iel,double *dt) {
   
   /* endpoint of the characteristic line starting from cb */
   /* segment is of norm sqrt(ux*ux+uy*uy+uz*uz), and is to be followed for time dt, in the - direction */ 
-  c[0] = (cb[0]*p[0]->c[0] + cb[1]*p[1]->c[0] + cb[2]*p[2]->c[0] + cb[3]*p[3]->c[0]) - ux;
-  c[1] = (cb[0]*p[0]->c[1] + cb[1]*p[1]->c[1] + cb[2]*p[2]->c[1] + cb[3]*p[3]->c[1]) - uy;
-  c[2] = (cb[0]*p[0]->c[2] + cb[1]*p[1]->c[2] + cb[2]*p[2]->c[2] + cb[3]*p[3]->c[2]) - uz;
-
+  c[0] = (cb[0]*p[0]->c[0] + cb[1]*p[1]->c[0] + cb[2]*p[2]->c[0] + cb[3]*p[3]->c[0]) - tol*ux;
+  c[1] = (cb[0]*p[0]->c[1] + cb[1]*p[1]->c[1] + cb[2]*p[2]->c[1] + cb[3]*p[3]->c[1]) - tol*uy;
+  c[2] = (cb[0]*p[0]->c[2] + cb[1]*p[1]->c[2] + cb[2]*p[2]->c[2] + cb[3]*p[3]->c[2]) - tol*uz;
+  
   /* barycentric coordinate of uu in the current tetra */
   if ( !bar_3d(p,c,k,cb1) )  return(0);
 
@@ -226,7 +275,7 @@ static int travel_3d(ADst *adst,double *cb,int *iel,double *dt) {
     return(*dt > 0.0);
   }
 
-  /* ddt = least value of cb[i]/m[i] = (weighted) distance to lambda_i0 = 0 */
+  /* ddt = least value of cb[i]/m[i] = (weighted) distance to [lambda_i0 = 0] */
   /* ddt = interval of time elapsed before going out of the current element */
   /* condition m[i] > 0 ensures going out of element in "marching direction"*/  
   ddt = AD_TGV;
@@ -241,20 +290,22 @@ static int travel_3d(ADst *adst,double *cb,int *iel,double *dt) {
     }
   }
 
-  /* incomplete advection remain in element */
+  /* incomplete advection; remain in element */
   if ( ddt > tol ) {
-    for (i=0; i<4; i++)  cb[i] = cb[i] - tol*m[i];
+    memcpy(cb,cb1,4*sizeof(double));
     *dt -= tol;
   }
   /* advection goes out of element: advect a minimum value */
-  if ( ddt < AD_EPS*tol ) {
-    c[0] = cb[0]*p[0]->c[0] + cb[1]*p[1]->c[0] + cb[2]*p[2]->c[0] - AD_EPS*ux;
-    c[1] = cb[0]*p[0]->c[1] + cb[1]*p[1]->c[1] + cb[2]*p[2]->c[1] - AD_EPS*uy;
-    c[2] = cb[0]*p[0]->c[2] + cb[1]*p[1]->c[2] + cb[2]*p[2]->c[2] - AD_EPS*uz;
+  if ( ddt < AD_EPS ) {
+    c[0] = cb[0]*p[0]->c[0] + cb[1]*p[1]->c[0] + cb[2]*p[2]->c[0] + cb[3]*p[3]->c[0] - AD_EPS*ux;
+    c[1] = cb[0]*p[0]->c[1] + cb[1]*p[1]->c[1] + cb[2]*p[2]->c[1] + cb[3]*p[3]->c[1] - AD_EPS*uy;
+    c[2] = cb[0]*p[0]->c[2] + cb[1]*p[1]->c[2] + cb[2]*p[2]->c[2] + cb[3]*p[3]->c[2] - AD_EPS*uz;
+    
     /* find the new element */
-    k = locelt_3d(&adst->mesh,k,c,cb); 
+    k = locelt_3d(&adst->mesh,k,c,cb1);
     if ( k < 1 )  return(0);
     *iel = k;
+    memcpy(cb,cb1,4*sizeof(double));
     *dt -= AD_EPS;
   }
   else {
@@ -264,9 +315,11 @@ static int travel_3d(ADst *adst,double *cb,int *iel,double *dt) {
 
     /* barycentric coordinates of the exit point */ 
     cb1[i0] = 0.0;
-    cb1[i1] = cb[i1] - ddt * m[i1];
-    cb1[i2] = cb[i2] - ddt * m[i2];
+    cb1[i1] = cb[i1] - ddt * m[i1] / tol;
+    cb1[i2] = cb[i2] - ddt * m[i2] / tol;
     cb1[i3] = 1.0 - cb1[i1] - cb1[i2];
+    
+    /* snap the values of cb1 onto one of the four vertices if needed */
     if ( cb1[i1] < AD_EPS2 ) {
       cb1[i2] -= (AD_EPS2-cb1[i1]) / 2;
       cb1[i3] -= (AD_EPS2-cb1[i1]) / 2;
@@ -289,17 +342,25 @@ static int travel_3d(ADst *adst,double *cb,int *iel,double *dt) {
     }
     *dt -= ddt;
     
-    /* coordinates of the point of barycentric coordinates cb1 */
+    /* coordinates of the point with barycentric coordinates cb1 */
     c[0] = cb1[0]*p[0]->c[0] + cb1[1]*p[1]->c[0] + cb1[2]*p[2]->c[0] + cb1[3]*p[3]->c[0];
     c[1] = cb1[0]*p[0]->c[1] + cb1[1]*p[1]->c[1] + cb1[2]*p[2]->c[1] + cb1[3]*p[3]->c[1];
     c[2] = cb1[0]*p[0]->c[2] + cb1[1]*p[1]->c[2] + cb1[2]*p[2]->c[2] + cb1[3]*p[3]->c[2];
-
+    
+    /* no adjacent tetra; return current one, with bcs of the exit point */
     if ( !pt->adj[i0] ) {
       memcpy(cb,cb1,4*sizeof(double));
       return(0);
     }
+    /* when there is an adjacent tetra, iel = new tetra, cb = barycentric coordinates in iel */
     else {
       *iel = pt->adj[i0] / 4;
+      pt   = &adst->mesh.tetra[*iel];
+      
+      p[0] = &adst->mesh.point[pt->v[0]];
+      p[1] = &adst->mesh.point[pt->v[1]];
+      p[2] = &adst->mesh.point[pt->v[2]];
+      p[3] = &adst->mesh.point[pt->v[3]];
       if ( !bar_3d(p,c,*iel,cb) )  return(0);
     }
   }
@@ -320,21 +381,24 @@ static int nxtptR_3d(ADst *adst,int *iel,double *c,double *cb,double step,double
   xp1[1] = c[1] - 0.5*step*v[1];
   xp1[2] = c[2] - 0.5*step*v[2];
   k = locelt_3d(&adst->mesh,k,xp1,cb);
-  if ( k < 1 )   return(k);
+  if ( !adst->info.noex && k < 1 )   return(k);
+  k = abs(k);
   vecint_3d(adst->sol.u,adst->mesh.tetra[k].v,cb,v1);
 
   xp2[0] = c[0] - 0.5*step*v1[0];
   xp2[1] = c[1] - 0.5*step*v1[1];
   xp2[2] = c[2] - 0.5*step*v1[2];
   k = locelt_3d(&adst->mesh,k,xp2,cb);
-  if ( k < 1 )   return(k);
+  if ( !adst->info.noex && k < 1 )   return(k);
+  k = abs(k);
   vecint_3d(adst->sol.u,adst->mesh.tetra[k].v,cb,v2);
 
   xp3[0] = c[0] - step*v2[0];
   xp3[1] = c[1] - step*v2[1];
   xp3[2] = c[2] - step*v2[2];
   k = locelt_3d(&adst->mesh,k,xp3,cb);
-  if ( k < 1 )   return(k);
+  if ( !adst->info.noex && k < 1 )   return(k);
+  k = abs(k);
   vecint_3d(adst->sol.u,adst->mesh.tetra[k].v,cb,v3);
 
   /* final RK4 step */  
@@ -343,8 +407,9 @@ static int nxtptR_3d(ADst *adst,int *iel,double *c,double *cb,double step,double
   cc[1] = c[1] - h6 * (v[1] + 2.0*(v1[1] + v2[1]) + v3[1]);
   cc[2] = c[2] - h6 * (v[2] + 2.0*(v1[2] + v2[2]) + v3[2]);
   k = locelt_3d(&adst->mesh,k,cc,cb);
-  if ( k < 1 )   return(k);
-
+  if ( !adst->info.noex && k < 1 )   return(k);
+  k = abs(k);
+  
   /* update */
   c[0] = cc[0];
   c[1] = cc[1];
@@ -391,10 +456,10 @@ static void savedt(double dt) {
 /* solve advection, solution in rv */
 int advec1_3d(ADst *adst) {
   pTetra   pt,pt1;
-  pPoint   ppt;
-  double   cb[4],v[3],c[3],dt,dte,norm,tol,step;  
-  int      j,k,ip,iel,kprv,nt,nstep;
-  char     i;
+  pPoint   ppt,p0,p1,p2,p3;
+  double   cb[4],cbo[4],v[3],c[3],dt,dte,dto,norm,tol,step,v0,v1;
+  int      j,k,l,ip,ip0,iel,kprv,nt,nstep,ilist,list[AD_LONMAX];
+  char     i,ind;
 
   if ( !adst->sol.new ) {
     adst->sol.new = (double *)malloc((adst->info.np+1)*sizeof(double));
@@ -404,7 +469,9 @@ int advec1_3d(ADst *adst) {
 
   /* check mesh size and velocity */
   if ( !adst->info.nocfl ) {
+    if ( adst->sol.umax < AD_EPSD )  return(1);
     dt = adst->sol.hmin / adst->sol.umax;
+    
     if ( adst->sol.dt < 0.0 ) {
       adst->sol.dt = dt;
       savedt(dt);
@@ -417,7 +484,7 @@ int advec1_3d(ADst *adst) {
   
   /* adjust iterations */
   dt    = adst->sol.dt;
-  tol   = adst->sol.dt / 10.0;
+  tol   = adst->sol.dt / 100.0;
   nstep = (int)(dt/tol);
   step  = dt / nstep;
 
@@ -435,7 +502,6 @@ int advec1_3d(ADst *adst) {
       ppt = &adst->mesh.point[ip];
       /* check if already processed */
       if ( ppt->flag == 1 )  continue;
-      ppt->flag = 1;
       kprv = k;
 
       /* coordinate and velocity at starting point */
@@ -454,23 +520,29 @@ int advec1_3d(ADst *adst) {
       c[1] = ppt->c[1];
       c[2] = ppt->c[2];
       dte  = dt;
+      
       for (iel=k,j=0; j<nstep; j++) {
         kprv = iel;
+        dto = dte;
+        memcpy(cbo,cb,4*sizeof(double));
         if ( nxtptR_3d(adst,&iel,c,cb,step,v) < 1 )  break;
         dte -= step;
       }
+      
+      /* If a boundary has been met, finish with travel */
       if ( j < nstep ) {
         iel = kprv;
-        printf("coucou \n");
+        memcpy(cb,cbo,4*sizeof(double));
         while ( travel_3d(adst,cb,&iel,&dte) );
       }
       
       /* check if characteristic remains inside domain */
-      if ( dte > AD_EPS ) {
+      /* if ( dte > AD_EPS ) {
         if ( iel < 0 )  iel = kprv;
         iel = locelt_3d(&adst->mesh,iel,c,cb);
         if ( iel < 1 )  iel = kprv;
-      }
+      } */
+      
       /* interpolate value at foot  */
       if ( iel == 0 )  return(0);
       pt1 = &adst->mesh.tetra[iel];
@@ -478,7 +550,86 @@ int advec1_3d(ADst *adst) {
                         + cb[1]*adst->sol.chi[pt1->v[1]] \
                         + cb[2]*adst->sol.chi[pt1->v[2]] \
                         + cb[3]*adst->sol.chi[pt1->v[3]];
+      
+      /* extrapolation of the characteristic curve in case of leaving the computational domain */
+      if ( !adst->info.noex && dte > AD_EPS ) {
+        if ( fabs(dte-dto) > AD_EPS ) {
+          /* v0 = last value before exit; v1 = exit value */
+          pt1 = &adst->mesh.tetra[kprv];
+          v0 = cbo[0]*adst->sol.chi[pt1->v[0]] + cbo[1]*adst->sol.chi[pt1->v[1]] \
+             + cbo[2]*adst->sol.chi[pt1->v[2]] + cbo[3]*adst->sol.chi[pt1->v[3]];
+          
+          pt1 = &adst->mesh.tetra[iel];
+          v1 = cb[0]*adst->sol.chi[pt1->v[0]] + cb[1]*adst->sol.chi[pt1->v[1]] \
+             + cb[2]*adst->sol.chi[pt1->v[2]] + cb[3]*adst->sol.chi[pt1->v[3]];
 
+          adst->sol.new[ip] = v0 + dto/(dto-dte)*(v1-v0);
+        }
+        /* characteristic goes immediately out of the domain */
+        else {
+          
+          vecint_3d(adst->sol.u,adst->mesh.tetra[iel].v,cbo,v);
+          pt1 = &adst->mesh.tetra[iel];
+          
+          v0 = cbo[0]*adst->sol.chi[pt1->v[0]] + cbo[1]*adst->sol.chi[pt1->v[1]] \
+             + cbo[2]*adst->sol.chi[pt1->v[2]] + cbo[3]*adst->sol.chi[pt1->v[3]];
+          
+          p0 = &adst->mesh.point[pt1->v[0]];
+          p1 = &adst->mesh.point[pt1->v[1]];
+          p2 = &adst->mesh.point[pt1->v[2]];
+          p3 = &adst->mesh.point[pt1->v[3]];
+          
+          c[0] = cbo[0]*p0->c[0] + cbo[1]*p1->c[0] + cbo[2]*p2->c[0] + cbo[3]*p3->c[0] + tol*v[0];
+          c[1] = cbo[0]*p0->c[1] + cbo[1]*p1->c[1] + cbo[2]*p2->c[1] + cbo[3]*p3->c[1] + tol*v[1];
+          c[2] = cbo[0]*p0->c[2] + cbo[1]*p1->c[2] + cbo[2]*p2->c[2] + cbo[3]*p3->c[2] + tol*v[2];
+          
+          iel = locelt_3d(&adst->mesh,iel,c,cb);
+          if ( iel < 1 ) continue;
+          
+          pt1 = &adst->mesh.tetra[iel];
+          v1 = cb[0]*adst->sol.chi[pt1->v[0]] + cb[1]*adst->sol.chi[pt1->v[1]] \
+             + cb[2]*adst->sol.chi[pt1->v[2]] + cb[3]*adst->sol.chi[pt1->v[3]];
+          
+          adst->sol.new[ip] = v0 - dto/tol*(v1-v0);
+        }
+      }
+      
+      ppt->flag = 1;
+      nt++;
+    }
+  }
+  
+  /* Post processing; interpolate sol.new at the (few) points where the previous procedure failed, according to the change in one of the neighbours */
+  for (k=1; k<=adst->info.ne; k++) {
+    pt = &adst->mesh.tetra[k];
+    for (i=0; i<4; i++) {
+      ip = pt->v[i];
+      ppt = &adst->mesh.point[ip];
+      if ( ppt->flag ) continue;
+      
+      ilist = boulet_3d(&adst->mesh,k,i,list);
+      if ( ilist < 0 ) continue;
+      for (l=0; l<ilist; l++) {
+        iel = list[l] / 4;
+        ind = list[l] % 4;
+        pt1 = &adst->mesh.tetra[iel];
+        
+        for (j=0; j<3; j++) {
+          ip0 = pt1->v[(ind+j+1)%4];
+          p0 = &adst->mesh.point[ip0];
+          if ( p0->flag ) {
+            v0 = adst->sol.chi[ip0];
+            v1 = adst->sol.new[ip0];
+            adst->sol.new[ip] = adst->sol.chi[ip] - v0 + v1;
+            break;
+          }
+        }
+        if ( j < 3 ) break;
+      }
+      
+      if ( l == ilist ) adst->sol.new[ip] = adst->sol.chi[ip];
+  
+      ppt->flag = 1;
       nt++;
     }
   }
