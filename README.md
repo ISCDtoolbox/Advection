@@ -36,7 +36,8 @@ The options and flags are:
   --version    show the version and date of release and exit.
 
   -dt step     time step (time units)
-  -nocfl      avoid truncation of the time period for advection due to cfl condition.
+  -nocfl       avoid truncation of the time period for advection due to cfl condition.
+  -noex        deactivates the default feature whereby characteristic lines are extrapolated outside the domain when the input velocity field causes them to do so.  
   -v           suppress any message (for use with function call).
   +v           increase the verbosity level for output.
 

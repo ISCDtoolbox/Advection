@@ -23,11 +23,12 @@
 #define AD_MIN3(a,b,c) ( (a) < (b) ? ((a)<(c) ? (a) : (c)) : ((b)<(c) ? (b) : (c)) )
 #define AD_MAX3(a,b,c) ( (a) > (b) ? ((a)>(c) ? (a) : (c)) : ((b)>(c) ? (b) : (c)) )
 
-#define AD_EPS   1.e-6
-#define AD_EPS2  1.e-12
-#define AD_EPSD  1.e-200
-#define AD_TGV   1.e+30
-#define AD_DTM   1.e-4
+#define AD_EPS     1.e-6
+#define AD_EPS2    1.e-12
+#define AD_EPSD    1.e-200
+#define AD_TGV     1.e+30
+#define AD_DTM     1.e-4
+#define AD_LONMAX  1024
 
 
 /* data structures */
@@ -51,7 +52,7 @@ typedef Tetra * pTetra;
 typedef struct {
   int       dim,ver;
   int       np,nt,ne,mark;
-  char      verb,nocfl;
+  char      verb,nocfl,noex;
   mytime    ctim[TIMEMAX];
 } Info;
 
