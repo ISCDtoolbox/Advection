@@ -24,6 +24,7 @@
 #define AD_MAX3(a,b,c) ( (a) > (b) ? ((a)>(c) ? (a) : (c)) : ((b)>(c) ? (b) : (c)) )
 
 #define AD_EPS     1.e-6
+#define AD_EPS1    1.e-4
 #define AD_EPS2    1.e-12
 #define AD_EPSD    1.e-200
 #define AD_TGV     1.e+30
