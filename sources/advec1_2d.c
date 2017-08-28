@@ -1,5 +1,7 @@
 #include "advect.h"
 
+int ddb;
+
 /* barycentric coordinates of point c[] in iel=p0,p1,p2 */
 static inline int bar_2d(pPoint pp[3],double *c,int iel,double *cb) {
   double    det;
@@ -215,7 +217,7 @@ static int travel_2d(ADst *adst,double *cb,int *iel,double *dt) {
   u0 = &adst->sol.u[2*(pt->v[0]-1)+1];
   u1 = &adst->sol.u[2*(pt->v[1]-1)+1];
   u2 = &adst->sol.u[2*(pt->v[2]-1)+1];
-
+  
   /* u = P1 velocity at the point with barycentric coordinates cb */
   ux = cb[0]*u0[0] + cb[1]*u1[0] + cb[2]*u2[0];
   uy = cb[0]*u0[1] + cb[1]*u1[1] + cb[2]*u2[1];
@@ -250,7 +252,7 @@ static int travel_2d(ADst *adst,double *cb,int *iel,double *dt) {
       } 
     }
   }
-
+  
   /* case when advection stays in same triangle */
   if ( ddt > tol ) {
     memcpy(cb,cb1,3*sizeof(double));
@@ -258,16 +260,17 @@ static int travel_2d(ADst *adst,double *cb,int *iel,double *dt) {
   }
   /* advection goes out of triangle: advect a minimum value */
   /* Old: ddt < AD_EPS*tol */
-  if ( ddt < AD_EPS ) {
-    c[0] = cb[0]*p[0]->c[0] + cb[1]*p[1]->c[0] + cb[2]*p[2]->c[0] - AD_EPS*ux;
-    c[1] = cb[0]*p[0]->c[1] + cb[1]*p[1]->c[1] + cb[2]*p[2]->c[1] - AD_EPS*uy;
+  if ( ddt < AD_EPS1 ) {
+    c[0] = cb[0]*p[0]->c[0] + cb[1]*p[1]->c[0] + cb[2]*p[2]->c[0] - AD_EPS1*ux;
+    c[1] = cb[0]*p[0]->c[1] + cb[1]*p[1]->c[1] + cb[2]*p[2]->c[1] - AD_EPS1*uy;
     
     /* find the new triangle */
     k = locelt_2d(&adst->mesh,k,c,cb1);
+        
     if ( k < 1 )  return(0);
     *iel = k;
     memcpy(cb,cb1,3*sizeof(double));
-    *dt -= AD_EPS;
+    *dt -= AD_EPS1;
   }
   else {
     /* barycentric coordinates of the exit point */   
@@ -452,6 +455,7 @@ int advec1_2d(ADst *adst) {
       /* if a boundary has been met, finish with travel */
       if ( j < nstep ) {
         iel = kprv;
+        ddb = ip == 129;
         memcpy(cb,cbo,3*sizeof(double));
         while ( travel_2d(adst,cb,&iel,&dte) );
       }
