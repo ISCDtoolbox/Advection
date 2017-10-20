@@ -331,7 +331,7 @@ int advec1_2d(ADst *adst) {
   }
   else if ( dt < adst->sol.dt ) {
     adst->sol.dt = dt;
-  savedt(adst->sol.dt);
+    savedt(adst->sol.dt);
   }
 
   dt    = adst->sol.dt;
