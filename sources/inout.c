@@ -181,7 +181,7 @@ int loadSol(ADst *adst) {
   }
   else {
 	  for (k=0; k<adst->info.np; k++) {
-      GmfGetLin(inm,GmfSolAtVertices,bufd);
+      GmfGetLin(inm,GmfSolAtVertices,&bufd);
       dd = 0.0;
       for (i=0; i<dim; i++) {
         adst->sol.u[dim*k+i+1] = bufd[i];
