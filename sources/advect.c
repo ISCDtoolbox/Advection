@@ -46,6 +46,7 @@ static void usage(char *prog) {
   --help       show the syntax and exit.\n\
   --version    show the version and date of release and exit.\n\n\
   -dt step     time step (time units)\n\
+  -nocfl       avoid truncation of the advection time period. \n\
   -v           suppress any message (for use with function call).\n\
   +v           increase the verbosity level for output.\n\n\
   source.mesh    name of the mesh file\n\
@@ -112,6 +113,12 @@ static int parsar(int argc,char *argv[],ADst *adst) {
           fprintf(stdout,"%s: missing input file\n", argv[0]);
           usage(argv[0]);
         }
+        break;
+      case 'n':
+        if ( !strcmp(argv[i],"-nocfl") )
+          adst->info.nocfl = 1;
+        else if ( !strcmp(argv[i],"-noex") )
+          adst->info.noex = 1;
         break;
       case 'o':
         if ( ++i < argc ) {
@@ -218,10 +225,12 @@ int main(int argc,char *argv[]) {
   adst.sol.dt = -1.0;
 
   /* global parameters */
-	adst.info.dim  = 3;
-	adst.info.ver  = 1;	
+  adst.info.dim  = 3;
+  adst.info.ver  = 1;
   adst.info.verb = '1';
-
+  adst.info.nocfl = 0;
+  adst.info.noex = 0;
+  
   /* parse command line */
   if ( !parsar(argc,argv,&adst) )  return(1);
   if ( adst.sol.dt < 0.0 && !parsdt(&adst) )  return(1);

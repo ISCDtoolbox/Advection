@@ -1,14 +1,14 @@
-# advect [![Build Status](https://travis-ci.org/ICStoolbox/Advection.svg?branch=master)](https://travis-ci.org/ICStoolbox/Advection)
+# advect [![Build Status](https://travis-ci.org/ISCDtoolbox/Advection.svg?branch=master)](https://travis-ci.org/ISCDtoolbox/Advection)
 Advect is a program for solving linear advection problems in two and three dimensions.
 
 #### Installation
 
-1. Install the [ICS Commons Library](https://github.com/ICStoolbox/Commons) on your system. 
-Please refer to the instructions provided on the ICS Commons Library page in order to install this library.
+1. install the [ISCD Commons Library](https://github.com/ISCDtoolbox/Commons) on your system. 
+Please refer to the instructions provided on the ISCD Commons Library page in order to install this library.
 
 2. download the zip archive of Advection or clone this repository:
 
-   ` git clone https://github.com/ICStoolbox/Advection.git `
+   ` git clone https://github.com/ISCDtoolbox/Advection.git `
 
    navigate to the downloaded directory: 
 
@@ -36,6 +36,8 @@ The options and flags are:
   --version    show the version and date of release and exit.
 
   -dt step     time step (time units)
+  -nocfl       avoid truncation of the time period for advection due to cfl condition.
+  -noex        deactivates the default feature whereby characteristic lines are extrapolated outside the domain when the input velocity field causes them to do so.  
   -v           suppress any message (for use with function call).
   +v           increase the verbosity level for output.
 
@@ -45,7 +47,7 @@ The options and flags are:
   output.sol     name of the output file containing the function values
 ```
 
-A full description of all parameters and options that can be specified in the command line or in a parameter file [file.advect] can be found in the project [wiki](https://github.com/ICStoolbox/Advection/wiki) (Coming soon...).
+A full description of all parameters and options that can be specified in the command line or in a parameter file [file.advect] can be found in the project [wiki](https://github.com/ISCDtoolbox/Advection/wiki) (Coming soon...).
 
 #### Quickstart (Coming soon...)
 You can test the installation and look at examples by entering the [demos](demos) directory and running the program:
