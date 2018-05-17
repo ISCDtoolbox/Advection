@@ -389,24 +389,7 @@ int advec1_2d(ADst *adst) {
     assert(adst->sol.new);
     memcpy(adst->sol.new,adst->sol.chi,(adst->info.np+1)*sizeof(double));
   }
-<<<<<<< HEAD
 
-  /* check mesh size and velocity */
-  if ( adst->sol.umax < AD_EPSD )  return(1);
-  dt = adst->sol.hmin / adst->sol.umax;
-  if ( adst->sol.dt < 0.0 ) {
-    adst->sol.dt = dt;
-    savedt(dt);
-  }
-  else if ( dt < adst->sol.dt/10.0 ) {
-    adst->sol.dt = AD_MAX(AD_DTM,AD_MAX(dt,adst->sol.dt/10.0));
-    savedt(adst->sol.dt);
-  }
-  else if ( dt < adst->sol.dt ) {
-    adst->sol.dt = dt;
-    savedt(adst->sol.dt);
-=======
-  
   /* check mesh size and velocity if not in mode nocfl */
   if ( !adst->info.nocfl ) {
     if ( adst->sol.umax < AD_EPSD )  return(1);
@@ -424,7 +407,6 @@ int advec1_2d(ADst *adst) {
       adst->sol.dt = dt;
       savedt(adst->sol.dt);
     }
->>>>>>> 390df48c1bd091e405524569159be57e2ed8d44d
   }
 
   dt    = adst->sol.dt;
