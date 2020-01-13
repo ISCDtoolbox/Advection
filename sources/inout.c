@@ -200,7 +200,6 @@ int loadSol(ADst *adst) {
   return(1);
 }
 
-
 /* load characteristic function */
 int loadChi(ADst *adst) {
   double       bufd[GmfMaxTyp];
@@ -208,15 +207,15 @@ int loadChi(ADst *adst) {
   int          k,inm,np,ver,dim,type,size,typtab[GmfMaxTyp];
   char        *ptr,data[128];
 
-	if ( !adst->sol.namechi )  return(-1);
+  if ( !adst->sol.namechi )  return(-1);
   strcpy(data,adst->sol.namechi);
-
+  
   /* remove .mesh extension */
   ptr = strstr(data,".mesh");
   if ( ptr )  *ptr = '\0';
 
   /* look for data file */
-  ptr = strstr(data,".chi.sol");
+  ptr = strstr(data,".sol");
   if ( ptr ) {
     inm = GmfOpenMesh(data,GmfRead,&ver,&dim);
   }
@@ -232,7 +231,7 @@ int loadChi(ADst *adst) {
     }
   }
   if ( !inm )  return(-1);
-
+  
   if ( dim != adst->info.dim )  return(-1);
   np = GmfStatKwd(inm,GmfSolAtVertices,&type,&size,typtab);
   if ( !np || typtab[0] != GmfSca || np != adst->info.np )  return(-1);
