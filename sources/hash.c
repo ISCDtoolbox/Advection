@@ -108,12 +108,13 @@ static int hcode_2d(Tria *tria,Htab *ht,int a,int b,int k,int i) {
       pc->nxt  = 0;
 
       /* check for size overflow */
-      if ( !ht->hnxt )  return(0);
+      if ( !ht->hnxt ) return(0);
+    
       return(1);
     }
     pc = &ht->cell[pc->nxt];
   } while (1);
-
+  
   return(0);  
 }
 
@@ -184,7 +185,7 @@ int hashel_2d(ADst *adst) {
   if ( adst->info.verb != '0' )  fprintf(stdout,"    Adjacency table: ");
 
   /* alloc hash */
-  ht.nmax = (int)(3.71 * adst->info.np);
+  ht.nmax = (int)(5.0 * adst->info.np);
   ht.cell = (Cell*)calloc(ht.nmax+2,sizeof(Cell));
   assert(ht.cell);
 
@@ -192,7 +193,7 @@ int hashel_2d(ADst *adst) {
   ht.hnxt = ht.hsiz;
   for (k=ht.hsiz; k<ht.nmax; k++)
     ht.cell[k].nxt = k+1;
-
+  
   /* update */
   na = 0;
   for (k=1; k<=adst->info.nt; k++) {
@@ -200,7 +201,7 @@ int hashel_2d(ADst *adst) {
     for (i=0; i<3; i++) {
       i1 = (i+1) % 3;
       i2 = (i+2) % 3;
-      if ( !hcode_2d(adst->mesh.tria,&ht,pt->v[i1],pt->v[i2],k,i) )  return(0);
+      if ( !hcode_2d(adst->mesh.tria,&ht,pt->v[i1],pt->v[i2],k,i) ) return(0);
       na++;
     }
   }
@@ -222,6 +223,7 @@ int hashel_2d(ADst *adst) {
   free(ht.cell);
 
   if ( adst->info.verb != '0' )  fprintf(stdout," %d updated\n",na);
+
 
   return(1);  
 }
