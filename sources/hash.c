@@ -118,7 +118,6 @@ static int hcode_2d(Tria *tria,Htab *ht,int a,int b,int k,int i) {
   return(0);  
 }
 
-
 /* build adjacency table */
 int hashel_3d(ADst *adst) {
   Htab     ht;

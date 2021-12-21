@@ -1,0 +1,8 @@
+/Users/dapogny/Advection/build/CMakeFiles/install/local.dir
+/Users/dapogny/Advection/build/CMakeFiles/install/strip.dir
+/Users/dapogny/Advection/build/CMakeFiles/install.dir
+/Users/dapogny/Advection/build/CMakeFiles/list_install_components.dir
+/Users/dapogny/Advection/build/CMakeFiles/advect.dir
+/Users/dapogny/Advection/build/CMakeFiles/rebuild_cache.dir
+/Users/dapogny/Advection/build/CMakeFiles/edit_cache.dir
+/Users/dapogny/Advection/build/CMakeFiles/Advection.dir
