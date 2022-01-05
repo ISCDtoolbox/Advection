@@ -455,7 +455,6 @@ int advec1_2d(ADst *adst) {
       /* if a boundary has been met, finish with travel */
       if ( j < nstep ) {
         iel = kprv;
-        ddb = ip == 129;
         memcpy(cb,cbo,3*sizeof(double));
         while ( travel_2d(adst,cb,&iel,&dte) );
       }
