@@ -455,7 +455,6 @@ int advec1_2d(ADst *adst) {
       /* if a boundary has been met, finish with travel */
       if ( j < nstep ) {
         iel = kprv;
-        ddb = ip == 129;
         memcpy(cb,cbo,3*sizeof(double));
         while ( travel_2d(adst,cb,&iel,&dte) );
       }
@@ -510,8 +509,7 @@ int advec1_2d(ADst *adst) {
     }
   }
   
-  /* Post processing; interpolate sol.new at the (few) points where the previous procedure failed, according to the
-     change in one of the neighbours */
+  /* Post processing; interpolate sol.new at the (few) points where the previous procedure failed, according to the change in one of the neighbours */
   for (k=1; k<=adst->info.nt; k++) {
     pt = &adst->mesh.tria[k];
     for (i=0; i<3; i++) {

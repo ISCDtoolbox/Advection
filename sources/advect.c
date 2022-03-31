@@ -132,14 +132,18 @@ static int parsar(int argc,char *argv[],ADst *adst) {
         }
         break;
       case 's':
-        if ( ++i < argc ) {
-          adst->sol.namein = argv[i];
-          ptr = strstr(adst->sol.namein,".sol");
-          if ( !ptr )  strcat(adst->sol.namein,".sol");
-        }
+        if ( !strcmp(argv[i],"-surf") )
+          adst->info.surf = 1;
         else {
-          fprintf(stdout,"%s: missing data file\n", argv[0]);
-          usage(argv[0]);
+          if ( ++i < argc ) {
+            adst->sol.namein = argv[i];
+            ptr = strstr(adst->sol.namein,".sol");
+            if ( !ptr )  strcat(adst->sol.namein,".sol");
+          }
+          else {
+            fprintf(stdout,"%s: missing data file\n", argv[0]);
+            usage(argv[0]);
+          }
         }
         break;
       case 'v':
@@ -234,7 +238,7 @@ int main(int argc,char *argv[]) {
   /* parse command line */
   if ( !parsar(argc,argv,&adst) )  return(1);
   if ( adst.sol.dt < 0.0 && !parsdt(&adst) )  return(1);
-
+  
   /* loading data */
 	chrono(ON,&adst.info.ctim[1]);
 
@@ -244,7 +248,7 @@ int main(int argc,char *argv[]) {
   }
 
   /* loading mesh */
-	ier = loadMesh(&adst);
+  ier = loadMesh(&adst);
   if ( ier <= 0 )  return(1);
 
   /* allocating memory */
@@ -267,9 +271,9 @@ int main(int argc,char *argv[]) {
     if ( adst.info.verb != '0' )  fprintf(stdout," # missing or wrong file %s",adst.sol.namechi);
     return(1);
   }
-
+  
   /* build adjacency table */
-  ier = adst.info.dim == 2 ? hashel_2d(&adst) : hashel_3d(&adst);
+  ier = ( adst.info.dim == 2 || adst.info.surf ) ? hashel_2d(&adst) : hashel_3d(&adst);
   if ( !ier )  return(1);
 
   chrono(OFF,&adst.info.ctim[1]);
@@ -309,7 +313,7 @@ int main(int argc,char *argv[]) {
   }
 
   /* free mem */
-	free(adst.sol.u);
+  free(adst.sol.u);
   free(adst.sol.chi);
 
   chrono(OFF,&adst.info.ctim[0]);

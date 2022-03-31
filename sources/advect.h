@@ -53,7 +53,7 @@ typedef Tetra * pTetra;
 typedef struct {
   int       dim,ver;
   int       np,nt,ne,mark;
-  char      verb,nocfl,noex;
+  char      verb,nocfl,noex,surf;
   mytime    ctim[TIMEMAX];
 } Info;
 
@@ -88,9 +88,9 @@ int   saveChi(ADst *adst);
 int   hashel_2d(ADst *adst);
 int   hashel_3d(ADst *adst);
 int   advec1_2d(ADst *adst);
+int   advec1_s(ADst *adst);
 int   advec1_3d(ADst *adst);
 
 int   AD_advect(ADst *adst);
-
 
 #endif
