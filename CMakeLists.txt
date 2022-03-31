@@ -1,11 +1,25 @@
 cmake_minimum_required(VERSION 3.12)
-project(Advection)
 
-file(GLOB_RECURSE sources sources/*.c)
-file(GLOB_RECURSE headers sources/*.h)
+project(Advection C)
 
-add_library(libAdvection ${sources})
+# ---- Configure compiler ----------------------------------------------------
+if(CMAKE_BUILD_TYPE STREQUAL "")
+  set(CMAKE_BUILD_TYPE Release)
+endif()
 
+if (${CMAKE_BUILD_TYPE} MATCHES Release)
+  add_compile_options(-w -O3)
+elseif (${CMAKE_BUILD_TYPE} MATCHES Debug)
+  add_compile_options(-g -O0 -Wall -Wextra -Wpedantic)
+else()
+  message(WARNING "Unhandled build type: ${CMAKE_BUILD_TYPE}")
+endif()
+
+# ---- Variable documentation ------------------------------------------------
+set(ISCD_COMMONS_LIBRARY "" CACHE STRING "Path to ISCD::Commons library")
+set(ISCD_COMMONS_INCLUDE_DIR "" CACHE STRING "Path to ISCD::Commons include directory")
+
+# ---- ISCD::Commons ---------------------------------------------------------
 find_library(Commons
   NAMES
   Commons
@@ -13,21 +27,22 @@ find_library(Commons
   ${ISCD_COMMONS_LIBRARY}
   )
 
+# ---- Math ------------------------------------------------------------------
 find_library(M_LIB m)
 
-target_include_directories(libAdvection PUBLIC ${ISCD_COMMONS_INCLUDE_DIR})
-target_link_libraries(libAdvection
+# ---- Executable ------------------------------------------------------------
+file(GLOB_RECURSE Advection_SRCS sources/*.c)
+file(GLOB_RECURSE Advection_HEADERS sources/*.h)
+
+add_executable(Advection ${Advection_SRCS} ${Advection_HEADERS})
+
+target_include_directories(Advection
   PUBLIC
-  ${Commons}
+  ${ISCD_COMMONS_INCLUDE_DIR}
+  )
+target_link_libraries(Advection
+  PUBLIC
   pthread
   ${M_LIB}
+  ${Commons}
   )
-
-# Executable
-add_executable(Advection sources/advect.c)
-target_link_libraries(Advection libAdvection ${Commons})
-
-# This install is really borked, so I do not want to use it
-# INSTALL(               TARGETS Advection LIBRARY  DESTINATION "$ENV{HOME}/lib")
-# INSTALL(               FILES ${header_files} DESTINATION "$ENV{HOME}/include")
-# INSTALL(               TARGETS advect RUNTIME DESTINATION "$ENV{HOME}/bin")
