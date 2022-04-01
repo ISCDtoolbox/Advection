@@ -23,4 +23,4 @@ make -j4
 ```
 
 ## License
-Advection is given under the [terms of the GNU Lesser General Public License] (LICENSE.md).
+Advection is given under the [terms of the GNU Lesser General Public License](LICENSE.md).
