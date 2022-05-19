@@ -208,7 +208,7 @@ static int parsdt(ADst *adst) {
 
 int main(int argc,char *argv[]) {
   ADst    adst;
-  int     ier;
+  int     ier,*perm;
   char    stim[32];
 
   tminit(adst.info.ctim,TIMEMAX);
@@ -272,6 +272,15 @@ int main(int argc,char *argv[]) {
     return(1);
   }
   
+  /* Compress mesh in the surface case if tetrahedra are supplied */
+  if ( adst.info.zip ) {
+    perm = (int*)calloc(adst.info.np+1,sizeof(int));
+    if ( !pack_s(&adst,perm) ) {
+      printf("    *** Impossible to pack mesh; abort.\n ");
+      exit(0);
+    }
+  }
+  
   /* build adjacency table */
   ier = ( adst.info.dim == 2 || adst.info.surf ) ? hashel_2d(&adst) : hashel_3d(&adst);
   if ( !ier )  return(1);
@@ -302,6 +311,15 @@ int main(int argc,char *argv[]) {
     adst.sol.nameout = (char *)calloc(128,sizeof(char));
     assert(adst.sol.nameout);
     strcpy(adst.sol.nameout,adst.mesh.name);
+  }
+  
+  /* unpacking */
+  if ( adst.info.zip ) {
+    if ( !unpack_s(&adst,perm) ) {
+      printf("    *** Impossible to pack mesh; abort.\n ");
+      exit(0);
+    }
+    free(perm);
   }
 
   ier = saveChi(&adst);

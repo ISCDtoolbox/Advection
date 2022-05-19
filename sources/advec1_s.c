@@ -609,7 +609,11 @@ int advec1_s(ADst *adst) {
 
   /* allocate structure for solution */
   if ( !adst->sol.new ) {
-    adst->sol.new = (double *)malloc((adst->info.np+1)*sizeof(double));
+    if ( adst->info.zip)
+      adst->sol.new = (double *)malloc((adst->info.npi+1)*sizeof(double));
+    else
+      adst->sol.new = (double *)malloc((adst->info.np+1)*sizeof(double));
+    
     assert(adst->sol.new);
     memcpy(adst->sol.new,adst->sol.chi,(adst->info.np+1)*sizeof(double));
   }

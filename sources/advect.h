@@ -35,8 +35,7 @@
 /* data structures */
 typedef struct {
   double    c[3];
-  int       s,ref;
-  char      flag;
+  int       s,ref,flag;
 } Point;
 typedef Point * pPoint;
 
@@ -52,8 +51,8 @@ typedef Tetra * pTetra;
 
 typedef struct {
   int       dim,ver;
-  int       np,nt,ne,mark;
-  char      verb,nocfl,noex,surf;
+  int       np,nt,ne,npi,mark;
+  char      verb,nocfl,noex,surf,zip;
   mytime    ctim[TIMEMAX];
 } Info;
 
@@ -87,6 +86,8 @@ int   loadChi(ADst *adst);
 int   saveChi(ADst *adst);
 int   hashel_2d(ADst *adst);
 int   hashel_3d(ADst *adst);
+int   pack_s(ADst *adst,int *perm);
+int   unpack_s(ADst *adst,int *perm);
 int   advec1_2d(ADst *adst);
 int   advec1_s(ADst *adst);
 int   advec1_3d(ADst *adst);
