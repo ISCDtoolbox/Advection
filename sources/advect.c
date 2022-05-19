@@ -250,7 +250,7 @@ int main(int argc,char *argv[]) {
   /* loading mesh */
   ier = loadMesh(&adst);
   if ( ier <= 0 )  return(1);
-
+  
   /* allocating memory */
   if ( !adst.sol.u ) {
     adst.sol.u = (double*)calloc(adst.info.dim*adst.info.np+1,sizeof(double));
@@ -293,7 +293,7 @@ int main(int argc,char *argv[]) {
 		printim(adst.info.ctim[2].gdif,stim);
     fprintf(stdout," ** COMPLETED: %s\n\n",stim);
 	}
-
+  
   /* save file */
   if ( adst.info.verb != '0' )  fprintf(stdout," - WRITING DATA\n");
   chrono(ON,&adst.info.ctim[3]);
