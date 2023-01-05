@@ -604,7 +604,7 @@ int advec1_s(ADst *adst) {
   pTria      pt,pt1;
   pPoint     ppt,p0;
   double     dt,dte,norm,v0,v1,vb,tol,*u0,cb[3];
-  int        nstep,nchar,ncor,nb,j,k,l,iel,ip,ip0,ilist,list[AD_LONMAX];
+  int        nstep,nchar,ncor,nb,nc,j,k,l,iel,ip,ip0,ilist,list[AD_LONMAX];
   char       i;
 
   /* allocate structure for solution */
@@ -629,7 +629,7 @@ int advec1_s(ADst *adst) {
   
   for (k=1; k<=adst->info.np; k++)
     adst->mesh.point[k].flag = 0;
-  
+    
   dt    = adst->sol.dt;
   nstep = 100;
   tol   = adst->sol.dt / nstep;
@@ -649,7 +649,7 @@ int advec1_s(ADst *adst) {
             
       /* Check if already processed */
       if ( ppt->flag == 1 )  continue;
-      
+            
       /* Case of very small velocity: no motion */
       u0 = &adst->sol.u[3*(ip-1)+1];
       norm = sqrt(u0[0]*u0[0]+u0[1]*u0[1]+u0[2]*u0[2]);
@@ -667,7 +667,6 @@ int advec1_s(ADst *adst) {
       dte = dt;
       ++adst->mesh.mark;
       
-      ddb = ip == 9489;
       while ( travel_s(adst,cb,&iel,&dte) );
       
       /* Interpolate value at the foot of characteristic */
@@ -677,7 +676,7 @@ int advec1_s(ADst *adst) {
       adst->sol.new[ip] = cb[0]*adst->sol.chi[pt1->v[0]] \
                         + cb[1]*adst->sol.chi[pt1->v[1]] \
                         + cb[2]*adst->sol.chi[pt1->v[2]];
-
+      
       /* Advection complete */
       if ( dte < AD_EPS ) {
         ppt->flag = 1;
@@ -699,37 +698,49 @@ int advec1_s(ADst *adst) {
   }
     
   /* Post processing; interpolate sol.new at the (few) points where the previous procedure failed, according to the change in one of the neighbours */
-  for (k=1; k<=adst->info.nt; k++) {
-    pt = &adst->mesh.tria[k];
-    for (i=0; i<3; i++) {
-      ip = pt->v[i];
-      ppt = &adst->mesh.point[ip];
-      if ( ppt->flag ) continue;
-      
-      nb = 0;
-      vb = 0.0;
-      ilist = boulep_s(&adst->mesh,k,i,list);
-      for (l=0; l<ilist; l++) {
-        ip0 = list[l];
-        p0 = &adst->mesh.point[ip0];
-        if ( p0->flag ) {
-          v0 = adst->sol.chi[ip0];
-          v1 = adst->sol.new[ip0];
-          vb += (v1-v0);
-          nb++;
+  do {
+    nc = 0;
+    for (k=1; k<=adst->info.nt; k++) {
+      pt = &adst->mesh.tria[k];
+      for (i=0; i<3; i++) {
+        ip = pt->v[i];
+        ppt = &adst->mesh.point[ip];
+                
+        if ( ppt->flag ) continue;
+        
+        nb = 0;
+        vb = 0.0;
+        ilist = boulep_s(&adst->mesh,k,i,list);
+        for (l=0; l<ilist; l++) {
+          ip0 = list[l];
+          p0 = &adst->mesh.point[ip0];
+          if ( p0->flag ) {
+            v0 = adst->sol.chi[ip0];
+            v1 = adst->sol.new[ip0];
+            vb += (v1-v0);
+            nb++;
+          }
+        }
+                
+        if ( nb ) {
+          adst->sol.new[ip] = adst->sol.chi[ip] + vb/nb;
+          ppt->flag = 1;
+          nc++;
         }
       }
-      
-      if ( nb )
-        adst->sol.new[ip] = adst->sol.chi[ip] + vb/nb;
-      else
-       adst->sol.new[ip] = adst->sol.chi[ip];
-      
-      ppt->flag = 1;
-      ncor++;
     }
+    ncor += nc;
   }
-
+  while ( nc > 0 );
+  
+  /* Update points which have not yet received correction */
+  for (k=1; k<=adst->info.np; k++) {
+    ppt = &adst->mesh.point[k];
+    if ( ppt->flag ) continue;
+    adst->sol.new[k] = adst->sol.chi[k];
+    ppt->flag = 1;
+  }
+  
   if ( adst->info.verb != '0' )
     fprintf(stdout,"%d characteristics, %d corrections\n",nchar,ncor);
 

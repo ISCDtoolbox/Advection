@@ -256,7 +256,7 @@ int main(int argc,char *argv[]) {
     adst.sol.u = (double*)calloc(adst.info.dim*adst.info.np+1,sizeof(double));
     assert(adst.sol.u);
   }
-
+  
   /* loading velocity */
   if ( adst.sol.namein ) {
     ier = loadSol(&adst);
