@@ -208,7 +208,7 @@ static int parsdt(ADst *adst) {
 
 int main(int argc,char *argv[]) {
   ADst    adst;
-  int     ier;
+  int     ier,*perm;
   char    stim[32];
 
   tminit(adst.info.ctim,TIMEMAX);
@@ -250,13 +250,13 @@ int main(int argc,char *argv[]) {
   /* loading mesh */
   ier = loadMesh(&adst);
   if ( ier <= 0 )  return(1);
-
+  
   /* allocating memory */
   if ( !adst.sol.u ) {
     adst.sol.u = (double*)calloc(adst.info.dim*adst.info.np+1,sizeof(double));
     assert(adst.sol.u);
   }
-
+  
   /* loading velocity */
   if ( adst.sol.namein ) {
     ier = loadSol(&adst);
@@ -270,6 +270,15 @@ int main(int argc,char *argv[]) {
   if ( ier <= 0 ) {
     if ( adst.info.verb != '0' )  fprintf(stdout," # missing or wrong file %s",adst.sol.namechi);
     return(1);
+  }
+  
+  /* Compress mesh in the surface case if tetrahedra are supplied */
+  if ( adst.info.zip ) {
+    perm = (int*)calloc(adst.info.np+1,sizeof(int));
+    if ( !pack_s(&adst,perm) ) {
+      printf("    *** Impossible to pack mesh; abort.\n ");
+      exit(0);
+    }
   }
   
   /* build adjacency table */
@@ -293,7 +302,7 @@ int main(int argc,char *argv[]) {
 		printim(adst.info.ctim[2].gdif,stim);
     fprintf(stdout," ** COMPLETED: %s\n\n",stim);
 	}
-
+  
   /* save file */
   if ( adst.info.verb != '0' )  fprintf(stdout," - WRITING DATA\n");
   chrono(ON,&adst.info.ctim[3]);
@@ -302,6 +311,15 @@ int main(int argc,char *argv[]) {
     adst.sol.nameout = (char *)calloc(128,sizeof(char));
     assert(adst.sol.nameout);
     strcpy(adst.sol.nameout,adst.mesh.name);
+  }
+  
+  /* unpacking */
+  if ( adst.info.zip ) {
+    if ( !unpack_s(&adst,perm) ) {
+      printf("    *** Impossible to pack mesh; abort.\n ");
+      exit(0);
+    }
+    free(perm);
   }
 
   ier = saveChi(&adst);

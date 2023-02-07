@@ -226,3 +226,77 @@ int hashel_2d(ADst *adst) {
 
   return(1);  
 }
+
+/* Extract points of a 3d mesh which are part of the surface triangulation,
+   renumber them so that they are contiguous,
+   and pack the values of solution and velocity accordingly */
+int pack_s(ADst *adst,int *perm) {
+  pTria        ptt;
+  pPoint       p0,p1;
+  int          k,npc;
+  char         i;
+  
+  /* Reset flag field */
+  for (k=1; k<=adst->info.np; k++)
+    adst->mesh.point[k].flag = 0;
+  
+  /* Identify points of the surface triangulation */
+  for (k=1; k<=adst->info.nt; k++) {
+    ptt = &adst->mesh.tria[k];
+    if ( !ptt->v[0] ) continue;
+    for (i=0; i<3; i++){
+      p0 = &adst->mesh.point[ptt->v[i]];
+      p0->flag = 1;
+    }
+  }
+  
+  /* Compress points: p1->flag contains the original index */
+  npc = 0;
+  for (k=1; k<=adst->info.np; k++) {
+    p0 = &adst->mesh.point[k];
+    if ( p0->flag ) {
+      npc++;
+      p1 = &adst->mesh.point[npc];
+      memcpy(p1,p0,sizeof(Point));
+      p1->flag = k;
+    }
+  }
+  
+  adst->info.npi = adst->info.np;
+  adst->info.np = npc;
+  
+  /* Compress solution */
+  for (k=1; k<=adst->info.np; k++) {
+    p0 = &adst->mesh.point[k];
+    // printf("k %d et flag %d\n",k,p0->flag);
+    adst->sol.chi[k] = adst->sol.chi[p0->flag];
+    adst->sol.u[3*(k-1)+1] = adst->sol.chi[3*(p0->flag-1)+1];
+    adst->sol.u[3*(k-1)+2] = adst->sol.chi[3*(p0->flag-1)+2];
+    adst->sol.u[3*(k-1)+3] = adst->sol.chi[3*(p0->flag-1)+3];
+  }
+  
+  /* Store permutation; perm[k] = original index of (new) point k */
+  for (k=1; k<=adst->info.np; k++) {
+    p0 = &adst->mesh.point[k];
+    perm[k] = p0->flag;
+  }
+  
+  return(1);
+}
+
+/* Restore values of sol at the position pointed by perm */
+int unpack_s(ADst *adst,int *perm) {
+  int k,ki;
+
+  for (k=adst->info.np; k>=1; k--) {
+    ki = perm[k];
+    adst->sol.chi[ki] = adst->sol.chi[k];
+    adst->sol.new[ki] = adst->sol.new[k];
+    adst->sol.u[3*(ki-1)+1] = adst->sol.chi[3*(k-1)+1];
+    adst->sol.u[3*(ki-1)+2] = adst->sol.chi[3*(k-1)+2];
+    adst->sol.u[3*(ki-1)+3] = adst->sol.chi[3*(k-1)+3];
+  }
+  
+  adst->info.np = adst->info.npi;
+  return(1);
+}
