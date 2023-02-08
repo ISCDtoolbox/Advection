@@ -1,0 +1,4 @@
+/Users/dapogny/lib/libAdvection.dylib
+/Users/dapogny/include/ad_calls.h
+/Users/dapogny/include/advect.h
+/Users/dapogny/bin/advect

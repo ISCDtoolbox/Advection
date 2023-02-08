@@ -23,7 +23,7 @@
 #define AD_MIN3(a,b,c) ( (a) < (b) ? ((a)<(c) ? (a) : (c)) : ((b)<(c) ? (b) : (c)) )
 #define AD_MAX3(a,b,c) ( (a) > (b) ? ((a)>(c) ? (a) : (c)) : ((b)>(c) ? (b) : (c)) )
 
-#define AD_EPS     1.e-6
+#define AD_EPS     1.e-10
 #define AD_EPS1    1.e-4
 #define AD_EPS2    1.e-12
 #define AD_EPSD    1.e-200
@@ -35,8 +35,7 @@
 /* data structures */
 typedef struct {
   double    c[3];
-  int       s,ref;
-  char      flag;
+  int       s,ref,flag;
 } Point;
 typedef Point * pPoint;
 
@@ -52,8 +51,8 @@ typedef Tetra * pTetra;
 
 typedef struct {
   int       dim,ver;
-  int       np,nt,ne,mark;
-  char      verb,nocfl,noex;
+  int       np,nt,ne,npi,mark;
+  char      verb,nocfl,noex,surf,zip;
   mytime    ctim[TIMEMAX];
 } Info;
 
@@ -87,10 +86,12 @@ int   loadChi(ADst *adst);
 int   saveChi(ADst *adst);
 int   hashel_2d(ADst *adst);
 int   hashel_3d(ADst *adst);
+int   pack_s(ADst *adst,int *perm);
+int   unpack_s(ADst *adst,int *perm);
 int   advec1_2d(ADst *adst);
+int   advec1_s(ADst *adst);
 int   advec1_3d(ADst *adst);
 
 int   AD_advect(ADst *adst);
-
 
 #endif
