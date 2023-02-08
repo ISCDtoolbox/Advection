@@ -1,6 +1,5 @@
 #include "advect.h"
 
-
 static double det_3d(double *cp0,double *cp1,double *cp2,double *cp3) {
   double  det,x01,x02,x03,y01,y02,y03,z01,z02,z03; 
 
@@ -112,7 +111,7 @@ static int locelt_3d(pMesh mesh,int nsd,double *c,double *cb) {
   ++mesh->mark;
   while ( nsf > 0 ) {
     pt = &mesh->tetra[nsf];
-    if ( pt->mark == mesh->mark )  return(-nsp);
+    if ( pt->mark == mesh->mark ) return(-nsp);
     pt->mark = mesh->mark;
     
     /* measure of element */
@@ -199,7 +198,6 @@ static int locelt_3d(pMesh mesh,int nsd,double *c,double *cb) {
     }
     
     isin = ( vol1 >= eps && vol2 >= eps && vol3 >= eps && vol4 >= eps );
-    
     vol1 = AD_MAX(vol1,0.0);
     vol2 = AD_MAX(vol2,0.0);
     vol3 = AD_MAX(vol3,0.0);
@@ -239,7 +237,7 @@ static int travel_3d(ADst *adst,double *cb,int *iel,double *dt) {
   tol  = *dt;
   k    = *iel;
   pt   = &adst->mesh.tetra[k];
-  
+      
   p[0] = &adst->mesh.point[pt->v[0]];
   p[1] = &adst->mesh.point[pt->v[1]];
   p[2] = &adst->mesh.point[pt->v[2]];
@@ -443,7 +441,6 @@ static int nxtptE_3d(ADst *adst,int *iel,double *c,double *cb,double step,double
   return(1);
 }
 
-
 static void savedt(double dt) {
   FILE   *out;
   
@@ -451,7 +448,6 @@ static void savedt(double dt) {
   fprintf(out,"%g\n",dt);
   fclose(out);
 }
-
 
 /* solve advection, solution in rv */
 int advec1_3d(ADst *adst) {
@@ -500,14 +496,16 @@ int advec1_3d(ADst *adst) {
     for (i=0; i<4; i++) {
       ip  = pt->v[i];
       ppt = &adst->mesh.point[ip];
+
       /* check if already processed */
       if ( ppt->flag == 1 )  continue;
       kprv = k;
-
+      
       /* coordinate and velocity at starting point */
       v[0] = adst->sol.u[3*(ip-1)+1];
       v[1] = adst->sol.u[3*(ip-1)+2];
       v[2] = adst->sol.u[3*(ip-1)+3];
+
       norm = sqrt(v[0]*v[0] + v[1]*v[1] + v[2]*v[2]);
       if ( norm < AD_EPSD )  continue;
       
@@ -528,14 +526,14 @@ int advec1_3d(ADst *adst) {
         if ( nxtptR_3d(adst,&iel,c,cb,step,v) < 1 )  break;
         dte -= step;
       }
-      
+            
       /* If a boundary has been met, finish with travel */
       if ( j < nstep ) {
         iel = kprv;
         memcpy(cb,cbo,4*sizeof(double));
         while ( travel_3d(adst,cb,&iel,&dte) );
       }
-      
+            
       /* check if characteristic remains inside domain */
       /* if ( dte > AD_EPS ) {
         if ( iel < 0 )  iel = kprv;
@@ -550,10 +548,17 @@ int advec1_3d(ADst *adst) {
                         + cb[1]*adst->sol.chi[pt1->v[1]] \
                         + cb[2]*adst->sol.chi[pt1->v[2]] \
                         + cb[3]*adst->sol.chi[pt1->v[3]];
-      
+    
+      /* advection complete */
+      if ( dte <= AD_EPS ) {
+        ppt->flag = 1;
+        nt++;
+      }
+            
       /* extrapolation of the characteristic curve in case of leaving the computational domain */
       if ( !adst->info.noex && dte > AD_EPS ) {
         if ( fabs(dte-dto) > AD_EPS ) {
+
           /* v0 = last value before exit; v1 = exit value */
           pt1 = &adst->mesh.tetra[kprv];
           v0 = cbo[0]*adst->sol.chi[pt1->v[0]] + cbo[1]*adst->sol.chi[pt1->v[1]] \
@@ -562,12 +567,13 @@ int advec1_3d(ADst *adst) {
           pt1 = &adst->mesh.tetra[iel];
           v1 = cb[0]*adst->sol.chi[pt1->v[0]] + cb[1]*adst->sol.chi[pt1->v[1]] \
              + cb[2]*adst->sol.chi[pt1->v[2]] + cb[3]*adst->sol.chi[pt1->v[3]];
-
+          
           adst->sol.new[ip] = v0 + dto/(dto-dte)*(v1-v0);
+          ppt->flag = 1;
+          nt++;
         }
         /* characteristic goes immediately out of the domain */
         else {
-          
           vecint_3d(adst->sol.u,adst->mesh.tetra[iel].v,cbo,v);
           pt1 = &adst->mesh.tetra[iel];
           
@@ -582,23 +588,22 @@ int advec1_3d(ADst *adst) {
           c[0] = cbo[0]*p0->c[0] + cbo[1]*p1->c[0] + cbo[2]*p2->c[0] + cbo[3]*p3->c[0] + tol*v[0];
           c[1] = cbo[0]*p0->c[1] + cbo[1]*p1->c[1] + cbo[2]*p2->c[1] + cbo[3]*p3->c[1] + tol*v[1];
           c[2] = cbo[0]*p0->c[2] + cbo[1]*p1->c[2] + cbo[2]*p2->c[2] + cbo[3]*p3->c[2] + tol*v[2];
-          
+                    
           iel = locelt_3d(&adst->mesh,iel,c,cb);
           if ( iel < 1 ) continue;
-          
+                    
           pt1 = &adst->mesh.tetra[iel];
           v1 = cb[0]*adst->sol.chi[pt1->v[0]] + cb[1]*adst->sol.chi[pt1->v[1]] \
              + cb[2]*adst->sol.chi[pt1->v[2]] + cb[3]*adst->sol.chi[pt1->v[3]];
           
           adst->sol.new[ip] = v0 - dto/tol*(v1-v0);
+          ppt->flag = 1;
+          nt++;
         }
       }
-      
-      ppt->flag = 1;
-      nt++;
     }
   }
-  
+      
   /* Post processing; interpolate sol.new at the (few) points where the previous procedure failed, according to the change in one of the neighbours */
   for (k=1; k<=adst->info.ne; k++) {
     pt = &adst->mesh.tetra[k];
@@ -606,7 +611,7 @@ int advec1_3d(ADst *adst) {
       ip = pt->v[i];
       ppt = &adst->mesh.point[ip];
       if ( ppt->flag ) continue;
-      
+            
       ilist = boulet_3d(&adst->mesh,k,i,list);
       if ( ilist < 0 ) continue;
       for (l=0; l<ilist; l++) {

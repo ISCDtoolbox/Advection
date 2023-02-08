@@ -375,7 +375,6 @@ static void savedt(double dt) {
   fclose(out);
 }
 
-
 /* solve advection, solution in rv */
 int advec1_2d(ADst *adst) {
   pTria    pt,pt1;
