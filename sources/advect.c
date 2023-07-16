@@ -234,6 +234,8 @@ int main(int argc,char *argv[]) {
   adst.info.verb = '1';
   adst.info.nocfl = 0;
   adst.info.noex = 0;
+  adst.info.zip  = 0;
+  perm = NULL;
   
   /* parse command line */
   if ( !parsar(argc,argv,&adst) )  return(1);
