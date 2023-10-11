@@ -1,28 +1,49 @@
-cmake_minimum_required(VERSION 2.8)
-set(CMAKE_BUILD_TYPE  "Release")
-INCLUDE_DIRECTORIES(  "$ENV{HOME}/include")
-LINK_DIRECTORIES(     "$ENV{HOME}/lib")
-SET(CMAKE_CXX_FLAGS   "-w -g -O3")
-set(CMAKE_MACOSX_RPATH 1)
-set(CMAKE_INSTALL_RPATH_USE_LINK_PATH TRUE)
+cmake_minimum_required(VERSION 3.12)
 
-#Advection library
-project(Advection)
-file(                  GLOB_RECURSE source_files sources/*)
-file(                  GLOB_RECURSE header_files sources/*.h)
-ADD_LIBRARY(           Advection SHARED ${source_files})
-find_library(          Commons NAMES Commons HINTS "$ENV{HOME}/lib")
-target_link_libraries( Advection ${Commons})
-INSTALL(               TARGETS Advection LIBRARY  DESTINATION "$ENV{HOME}/lib")
-INSTALL(               FILES ${header_files} DESTINATION "$ENV{HOME}/include")
+project(Advection C)
 
-#Executable
-project(main)
-add_executable(        advect sources/advect.c)
-target_link_libraries( advect Commons Advection)
-INSTALL(               TARGETS advect RUNTIME DESTINATION "$ENV{HOME}/bin")
+# ---- Configure compiler ----------------------------------------------------
+if(CMAKE_BUILD_TYPE STREQUAL "")
+  set(CMAKE_BUILD_TYPE Release)
+endif()
 
- 
+if (${CMAKE_BUILD_TYPE} MATCHES Release)
+  add_compile_options(-w -O3)
+elseif (${CMAKE_BUILD_TYPE} MATCHES Debug)
+  add_compile_options(
+    -g
+    -O0
+    -Wall
+    -Wextra
+    -Wpedantic
+    -Wno-newline-eof
+    -Wno-missing-braces
+    -Wno-char-subscripts
+    -Wno-unused-variable
+    -Wno-unused-function
+    -Wno-unused-parameter
+    )
+else()
+  message(WARNING "Unhandled build type: ${CMAKE_BUILD_TYPE}")
+endif()
 
+# ---- ISCD::Commons ---------------------------------------------------------
+add_subdirectory(
+  ${PROJECT_SOURCE_DIR}/third-party/ISCD/Commons
+  ${PROJECT_BINARY_DIR}/third-party/ISCD/Commons)
+target_include_directories(Commons
+  INTERFACE
+  ${PROJECT_SOURCE_DIR}/third-party/ISCD/Commons/sources)
+add_library(ISCD::Commons ALIAS Commons)
 
+# ---- Executable ------------------------------------------------------------
+file(GLOB_RECURSE Advection_SRCS sources/*.c)
+file(GLOB_RECURSE Advection_HEADERS sources/*.h)
 
+add_executable(Advection ${Advection_SRCS} ${Advection_HEADERS})
+
+target_link_libraries(Advection
+  PRIVATE
+  m
+  pthread
+  ISCD::Commons)
